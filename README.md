@@ -208,15 +208,17 @@ Sārathi AI includes a **command-line operator interface** for direct human cont
 
 ```bash
 # 1. Clone the repository
+git clone https://github.com/abhijitpatil140/sarathi-ai.git
+cd sarathi-ai
 
 # 2. Install dependencies
+npm install
 
 # 3. Start the Sārathi AI Server
-
+npm start
 
 # 4. Open the dashboard in your browser
 #    → http://localhost:3000
-```
 
 ### Project Structure
 
