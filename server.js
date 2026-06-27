@@ -202,7 +202,7 @@ app.post('/api/inject', (req, res) => {
 
   const sat = Satellites[satelliteId];
   const anomaly = SATELLITE_DATA[satelliteId].anomalies[anomalyId];
-  
+
   sat.activeAnomaly = {
     id: anomalyId,
     param: anomaly.param,
@@ -285,7 +285,7 @@ const mcpTools = {
 
       const sat = Satellites[satelliteId];
       const anomaly = SATELLITE_DATA[satelliteId].anomalies[anomalyId];
-      
+
       sat.activeAnomaly = {
         id: anomalyId,
         param: anomaly.param,
@@ -361,7 +361,7 @@ rl.on('line', async (line) => {
         }
       };
       process.stdout.write(JSON.stringify(response) + '\n');
-    } 
+    }
     else if (method === 'tools/list') {
       const toolsArray = Object.entries(mcpTools).map(([name, tool]) => ({
         name,
@@ -374,7 +374,7 @@ rl.on('line', async (line) => {
         result: { tools: toolsArray }
       };
       process.stdout.write(JSON.stringify(response) + '\n');
-    } 
+    }
     else if (method === 'tools/call') {
       const toolName = params.name;
       const toolArgs = params.arguments || {};
