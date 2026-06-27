@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISRO Mission Intelligence Agent - Space Ops Command Center</title>
+  <!-- Google Fonts for retro-futuristic HUD typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS CSS DESIGN SYSTEM & TOKENS */
+    :root {
+      --bg-dark: #050811;
+      --bg-panel: rgba(13, 20, 38, 0.7);
+      --bg-panel-hover: rgba(20, 30, 55, 0.8);
+      --border-glow: rgba(0, 242, 254, 0.15);
+      --border-glow-active: rgba(0, 242, 254, 0.4);
+      --isro-orange: #ff9933;
+      --neon-cyan: #00f2fe;
+      --neon-green: #00f5a0;
+      --neon-red: #ff3838;
+      --neon-purple: #c084fc;
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+      --font-hud: 'Outfit', sans-serif;
+      --font-mono: 'Source Code Pro', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(255, 153, 51, 0.05) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: var(--font-hud);
+      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scrollbars styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 242, 254, 0.5);
+    }
+
+    /* HEADER */
+    header {
+      background: rgba(5, 8, 17, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* ISRO-inspired Logo Icon using pure CSS/SVG shapes */
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, rgba(255,153,51,0.2) 0%, transparent 70%);
+    }
+
+    .logo-orbit {
+      position: absolute;
+      width: 32px;
+      height: 12px;
+      border: 2px solid var(--neon-cyan);
+      border-radius: 50%;
+      transform: rotate(-30deg);
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    .logo-rocket {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 20px solid var(--isro-orange);
+      transform: translateY(-4px);
+      filter: drop-shadow(0 0 5px var(--isro-orange));
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #fff 30%, var(--isro-orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .brand-text p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .system-status-banner {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.75rem;
+    }
+
+    .status-indicator span.label {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--neon-green);
+      box-shadow: 0 0 8px var(--neon-green);
+    }
+
+    .status-dot.anomaly {
+      background-color: var(--neon-red);
+      box-shadow: 0 0 10px var(--neon-red);
+      animation: pulse 1s infinite alternate;
+    }
+
+    .clock-display {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--neon-cyan);
+      letter-spacing: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .clock-display span.ist {
+      color: var(--isro-orange);
+      font-size: 0.75rem;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    button.control-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-hud);
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    button.control-btn:hover {
+      background: rgba(0, 242, 254, 0.1);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    }
+
+    button.control-btn.active {
+      background: rgba(0, 242, 254, 0.2);
+      border-color: var(--neon-cyan);
+      color: #fff;
+    }
+
+    /* GRID CONTAINER */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      grid-template-rows: 1fr 280px;
+      gap: 16px;
+      padding: 16px;
+      flex-grow: 1;
+      height: calc(100vh - 67px);
+      position: relative;
+    }
+
+    /* FLOW OVERLAY FOR ANIMATING SVGS */
+    #flow-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* PANELS GENERAL */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-glow);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title i {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+    }
+
+    .panel-body {
+      padding: 12px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    /* LEFT SIDEBAR: SPACE VIEW & AGENT MATRIX */
+    .sidebar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    /* ORBITAL SPACE CANVAS */
+    #orbit-panel {
+      height: 300px;
+    }
+
+    #space-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* AGENT SYSTEM MATRIX */
+    #agent-panel {
+      flex-grow: 1;
+    }
+
+    .agent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .agent-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .agent-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .agent-card.running {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 242, 254, 0.04);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+      transform: scale(1.01);
+    }
+
+    .agent-card.running::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--neon-cyan);
+      border-radius: 3px 0 0 3px;
+    }
+
+    .agent-card.working {
+      border-color: var(--neon-purple);
+      background: rgba(192, 132, 252, 0.04);
+      box-shadow: 0 0 15px rgba(192, 132, 252, 0.1);
+      animation: workingGlow 1.5s infinite alternate;
+    }
+
+    .agent-card.working::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--neon-purple);
+      border-radius: 3px 0 0 3px;
+    }
+
+    @keyframes workingGlow {
+      from { box-shadow: 0 0 5px rgba(192, 132, 252, 0.1); }
+      to { box-shadow: 0 0 15px rgba(192, 132, 252, 0.25); }
+    }
+
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .agent-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .agent-badge {
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .agent-card.running .agent-badge {
+      background: rgba(0, 242, 254, 0.15);
+      color: var(--neon-cyan);
+    }
+
+    .agent-card.working .agent-badge {
+      background: rgba(192, 132, 252, 0.15);
+      color: var(--neon-purple);
+    }
+
+    .agent-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .agent-action {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--neon-cyan);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* CENTER/RIGHT PANEL: TELEMETRY GRID & DIAGNOSTICS */
+    .main-workspace {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* SATELLITE OPERATIONS GRID */
+    .satellite-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .satellite-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .satellite-card:hover {
+      background: var(--bg-panel-hover);
+      border-color: rgba(0, 242, 254, 0.25);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
+    }
+
+    .satellite-card.selected {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 242, 254, 0.03);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+    }
+
+    .satellite-card.has-anomaly {
+      border-color: var(--neon-red) !important;
+      background: rgba(255, 56, 56, 0.02) !important;
+      animation: alertBorder 1s infinite alternate;
+    }
+
+    @keyframes alertBorder {
+      from { border-color: rgba(255, 56, 56, 0.2); }
+      to { border-color: rgba(255, 56, 56, 0.8); }
+    }
+
+    .satellite-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 6px;
+    }
+
+    .satellite-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .satellite-orbit-tag {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sat-status-badge {
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .status-healthy {
+      background: rgba(0, 245, 160, 0.15);
+      color: var(--neon-green);
+    }
+
+    .status-warning {
+      background: rgba(255, 153, 51, 0.15);
+      color: var(--isro-orange);
+    }
+
+    .status-critical {
+      background: rgba(255, 56, 56, 0.15);
+      color: var(--neon-red);
+      animation: flashText 1s infinite alternate;
+    }
+
+    @keyframes flashText {
+      from { opacity: 0.6; }
+      to { opacity: 1; }
+    }
+
+    /* Dynamic Telemetry Mini List */
+    .mini-telemetry-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.7rem;
+    }
+
+    .param-label {
+      color: var(--text-muted);
+    }
+
+    .param-value {
+      font-family: var(--font-mono);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .param-anomaly {
+      animation: anomalyRowFlash 1.5s infinite alternate;
+    }
+
+    @keyframes anomalyRowFlash {
+      from { background: rgba(255, 56, 56, 0); }
+      to { background: rgba(255, 56, 56, 0.1); }
+    }
+
+    /* Bar Display */
+    .param-bar-container {
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+      position: relative;
+      margin-top: 2px;
+      overflow: hidden;
+    }
+
+    .param-bar-fill {
+      height: 100%;
+      background: var(--neon-cyan);
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .param-bar-fill.fill-error {
+      background: var(--neon-red);
+    }
+
+    /* DETAIL HUD & CHART */
+    .hud-details-section {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 16px;
+      flex-grow: 1;
+    }
+
+    .chart-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    #telemetry-chart {
+      width: 100%;
+      flex-grow: 1;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 6px;
+    }
+
+    /* CONTROL & ANOMALY INJECTOR */
+    .control-hud-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .hud-stat-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .hud-stat-title {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .hud-stat-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 2px;
+    }
+
+    .injector-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .injector-select {
+      background: rgba(5, 8, 17, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 8px;
+      border-radius: 6px;
+      font-family: var(--font-hud);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .injector-select:focus {
+      border-color: var(--neon-cyan);
+      outline: none;
+    }
+
+    /* BOTTOM ROW: LIVE TERMINAL & MISSION REPORTS */
+    .console-section {
+      grid-column: 1 / span 2;
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
+    }
+
+    /* LOG TERMINAL */
+    #terminal-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-filter {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--font-hud);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .terminal-filter.active, .terminal-filter:hover {
+      color: var(--neon-cyan);
+      background: rgba(0, 242, 254, 0.08);
+    }
+
+    .terminal-screen {
+      background: rgba(5, 8, 17, 0.95);
+      border: 1px solid rgba(0, 242, 254, 0.05);
+      border-radius: 6px;
+      flex-grow: 1;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      line-height: 1.4;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+    }
+
+    .log-line {
+      display: flex;
+      gap: 10px;
+      animation: slideInUp 0.15s ease-out;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .log-tag {
+      font-weight: 600;
+      flex-shrink: 0;
+      width: 130px;
+    }
+
+    .log-msg {
+      word-break: break-all;
+    }
+
+    /* Log Tags Colors */
+    .tag-ORCHESTRATOR { color: var(--isro-orange); }
+    .tag-TELEMETRY { color: #f5cd79; }
+    .tag-ANOMALY { color: var(--neon-purple); }
+    .tag-REPORT { color: var(--neon-green); }
+    .tag-SYSTEM { color: var(--neon-cyan); }
+
+    /* MISSION STATUS LOGBOOK REPORTS */
+    #report-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .report-display {
+      background: rgba(5, 8, 17, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      flex-grow: 1;
+      padding: 12px;
+      overflow-y: auto;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .report-title-md {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--isro-orange);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+
+    .report-sect-md {
+      font-weight: 600;
+      color: var(--neon-cyan);
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+
+    .report-row-md {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+      padding: 2px 0;
+    }
+
+    .report-row-md span.val-ok { color: var(--neon-green); }
+    .report-row-md span.val-fail { color: var(--neon-red); }
+
+    /* ANIMATIONS & KEYFRAMES */
+    @keyframes pulse {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideInUp {
+      from { transform: translateY(5px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* SVG Glowing flow paths animation styles */
+    @keyframes flowDash {
+      to {
+        stroke-dashoffset: -40;
+      }
+    }
+    .glowing-flow-path {
+      stroke-dasharray: 8, 4;
+      animation: flowDash 1s linear infinite;
+      filter: drop-shadow(0 0 5px currentColor);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand-container">
+      <div class="brand-logo">
+        <div class="logo-orbit"></div>
+        <div class="logo-rocket"></div>
+      </div>
+      <div class="brand-text">
+        <h1>ISRO Mission Intelligence</h1>
+        <p>Satellite Operations & AI Multi-Agent Matrix</p>
+      </div>
+    </div>
+
+    <!-- Active System Status Indicators -->
+    <div class="system-status-banner">
+      <div class="status-indicator">
+        <span class="label">System Health</span>
+        <div class="status-dot" id="system-health-dot"></div>
+        <span id="system-health-text">NOMINAL</span>
+      </div>
+      <div class="status-indicator">
+        <span class="label">Orchestrator Cycle</span>
+        <span id="orchestrator-cycle" style="font-family: var(--font-mono); color: var(--neon-cyan);">IDLE</span>
+      </div>
+      <div class="clock-display">
+        <span id="time-ist" class="ist">IST: --:--:--</span>
+        <span id="time-utc" style="color: var(--text-muted); font-size: 0.7rem;">UTC: --:--:--</span>
+      </div>
+    </div>
+
+    <!-- Right Header Controls -->
+    <div class="header-controls">
+      <button class="control-btn" id="audio-toggle-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="audio-icon">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" class="audio-waves"></path>
+        </svg>
+        Audio: OFF
+      </button>
+      <button class="control-btn" id="reset-system-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+        </svg>
+        Master Reset
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD GRID -->
+  <div class="dashboard-grid">
+    <!-- SVG overlay for drawing agent-to-satellite messaging lines -->
+    <svg id="flow-overlay"></svg>
+
+    <!-- LEFT COLUMN -->
+    <div class="sidebar-container">
+      
+      <!-- Space Map View -->
+      <div class="panel" id="orbit-panel">
+        <div class="panel-header">
+          <span class="panel-title"><i></i>Orbital Mapping</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Active Trajectories</span>
+        </div>
+        <div style="flex-grow: 1; position: relative;">
+          <canvas id="space-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Agent System Matrix -->
+      <div class="panel" id="agent-panel">
+        <div class="panel-header">
+          <span class="panel-title"><i></i>Agent Core Matrix</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Simulated Loops</span>
+        </div>
+        <div class="panel-body">
+          <div class="agent-list">
+            
+            <!-- Agent 4: Orchestrator -->
+            <div class="agent-card" id="agent-card-orchestrator">
+              <div class="agent-header">
+                <span class="agent-name">
+                  <span class="status-dot" style="background-color: var(--isro-orange); box-shadow: 0 0 6px var(--isro-orange);"></span>
+                  OrchestratorAgent
+                </span>
+                <span class="agent-badge">Master</span>
+              </div>
+              <div class="agent-details">
+                <span>Role: Loop Coordinator</span>
+                <span id="orchestrator-timer" class="timer-tick">Cycle: 0s</span>
+              </div>
+              <div class="agent-action" id="orchestrator-action">IDLE</div>
+            </div>
+
+            <!-- Agent 1: TelemetryWatcher -->
+            <div class="agent-card" id="agent-card-watcher">
+              <div class="agent-header">
+                <span class="agent-name">
+                  <span class="status-dot" style="background-color: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan);"></span>
+                  TelemetryWatcher
+                </span>
+                <span class="agent-badge">Monitor</span>
+              </div>
+              <div class="agent-details">
+                <span>Role: Scan Telemetry (5s)</span>
+                <span id="watcher-count">Last Checked: --</span>
+              </div>
+              <div class="agent-action" id="watcher-action">IDLE</div>
+            </div>
+
+            <!-- Agent 2: AnomalyClassifier -->
+            <div class="agent-card" id="agent-card-classifier">
+              <div class="agent-header">
+                <span class="agent-name">
+                  <span class="status-dot" style="background-color: var(--neon-purple); box-shadow: 0 0 6px var(--neon-purple);"></span>
+                  AnomalyClassifier
+                </span>
+                <span class="agent-badge">Diagnostic</span>
+              </div>
+              <div class="agent-details">
+                <span>Role: Resolve Anomalies</span>
+                <span id="classifier-resolved">Resolved: 0</span>
+              </div>
+              <div class="agent-action" id="classifier-action">LISTENING FOR EVENT</div>
+            </div>
+
+            <!-- Agent 3: MissionReportWriter -->
+            <div class="agent-card" id="agent-card-reporter">
+              <div class="agent-header">
+                <span class="agent-name">
+                  <span class="status-dot" style="background-color: var(--neon-green); box-shadow: 0 0 6px var(--neon-green);"></span>
+                  MissionReportWriter
+                </span>
+                <span class="agent-badge">Reporter</span>
+              </div>
+              <div class="agent-details">
+                <span>Role: Compile Reports (60s)</span>
+                <span id="reporter-timer">Next: 60s</span>
+              </div>
+              <div class="agent-action" id="reporter-action">IDLE</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT MAIN WORKSPACE -->
+    <div class="main-workspace">
+      
+      <!-- Satellite Telemetry Cards Grid -->
+      <div class="satellite-grid">
+        
+        <!-- INSAT-3DR -->
+        <div class="satellite-card" id="sat-card-insat3dr" onclick="selectSatellite('insat3dr')">
+          <div class="satellite-card-header">
+            <div>
+              <div class="satellite-title">INSAT-3DR</div>
+              <div class="satellite-orbit-tag">GEO Meteorological</div>
+            </div>
+            <span class="sat-status-badge status-healthy">HEALTHY</span>
+          </div>
+          <div class="mini-telemetry-list">
+            <div class="param-row param-row-payloadTemp">
+              <span class="param-label">Payload Temp</span>
+              <span class="param-value">-- °C</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+            <div class="param-row param-row-voltage">
+              <span class="param-label">Battery Volt</span>
+              <span class="param-value">-- V</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- Cartosat-3 -->
+        <div class="satellite-card" id="sat-card-cartosat3" onclick="selectSatellite('cartosat3')">
+          <div class="satellite-card-header">
+            <div>
+              <div class="satellite-title">Cartosat-3</div>
+              <div class="satellite-orbit-tag">Polar Earth Obs</div>
+            </div>
+            <span class="sat-status-badge status-healthy">HEALTHY</span>
+          </div>
+          <div class="mini-telemetry-list">
+            <div class="param-row param-row-gyro">
+              <span class="param-label">Gyro Spin</span>
+              <span class="param-value">-- rad/s</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+            <div class="param-row param-row-ssrStorage">
+              <span class="param-label">SSR Storage</span>
+              <span class="param-value">-- %</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- RISAT-2BR1 -->
+        <div class="satellite-card" id="sat-card-risat2br1" onclick="selectSatellite('risat2br1')">
+          <div class="satellite-card-header">
+            <div>
+              <div class="satellite-title">RISAT-2BR1</div>
+              <div class="satellite-orbit-tag">LEO Radar Imaging</div>
+            </div>
+            <span class="sat-status-badge status-healthy">HEALTHY</span>
+          </div>
+          <div class="mini-telemetry-list">
+            <div class="param-row param-row-radarTemp">
+              <span class="param-label">Radar Temp</span>
+              <span class="param-value">-- °C</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+            <div class="param-row param-row-busVoltage">
+              <span class="param-label">Bus Voltage</span>
+              <span class="param-value">-- V</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- Chandrayaan-3 -->
+        <div class="satellite-card" id="sat-card-chandrayaan3" onclick="selectSatellite('chandrayaan3')">
+          <div class="satellite-card-header">
+            <div>
+              <div class="satellite-title">Chandrayaan-3</div>
+              <div class="satellite-orbit-tag">Lunar Lander</div>
+            </div>
+            <span class="sat-status-badge status-healthy">HEALTHY</span>
+          </div>
+          <div class="mini-telemetry-list">
+            <div class="param-row param-row-landerTemp">
+              <span class="param-label">Lander Temp</span>
+              <span class="param-value">-- °C</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+            <div class="param-row param-row-fuel">
+              <span class="param-label">Propellant</span>
+              <span class="param-value">-- %</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- Aditya-L1 -->
+        <div class="satellite-card" id="sat-card-adityal1" onclick="selectSatellite('adityal1')">
+          <div class="satellite-card-header">
+            <div>
+              <div class="satellite-title">Aditya-L1</div>
+              <div class="satellite-orbit-tag">L1 Halo Solar</div>
+            </div>
+            <span class="sat-status-badge status-healthy">HEALTHY</span>
+          </div>
+          <div class="mini-telemetry-list">
+            <div class="param-row param-row-velcTemp">
+              <span class="param-label">VELC Temp</span>
+              <span class="param-value">-- °C</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+            <div class="param-row param-row-thrusterPres">
+              <span class="param-label">Thruster Pres</span>
+              <span class="param-value">-- psi</span>
+            </div>
+            <div class="param-bar-container"><div class="param-bar-fill"></div></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Detail HUD Diagnostics & Anomaly Injection -->
+      <div class="hud-details-section">
+        
+        <!-- Scrolling Graph Panel -->
+        <div class="panel chart-container" id="details-hud-panel">
+          <div class="panel-header">
+            <span class="panel-title"><i style="background: var(--neon-cyan);"></i>Telemetry Analysis: <span id="selected-sat-title">--</span></span>
+            <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--neon-cyan);" id="selected-param-title">Parameter: --</span>
+          </div>
+          <div class="panel-body" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Simple Telemetry Param Selector buttons -->
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="hud-param-buttons">
+              <!-- Dynamically populated -->
+            </div>
+            <div style="flex-grow: 1; position: relative;">
+              <canvas id="telemetry-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Anomaly Injector Console -->
+        <div class="panel control-hud-panel">
+          <div class="panel-header">
+            <span class="panel-title"><i style="background: var(--isro-orange);"></i>Fault Injection</span>
+          </div>
+          <div class="panel-body" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="hud-stat-box">
+              <div class="hud-stat-title">Target Asset</div>
+              <div class="hud-stat-value" id="injector-target-sat">--</div>
+            </div>
+
+            <div class="injector-form">
+              <label style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Select Anomaly Vector</label>
+              <select class="injector-select" id="anomaly-vector-select">
+                <option value="">-- No anomaly selected --</option>
+              </select>
+              <button class="control-btn" id="inject-anomaly-btn" style="justify-content: center; padding: 10px; width: 100%; border-color: var(--neon-red); background: rgba(255, 56, 56, 0.05); color: var(--neon-red);" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path>
+                </svg>
+                Inject Telemetry Fault
+              </button>
+            </div>
+
+            <div class="hud-stat-box" style="border-color: rgba(255, 255, 255, 0.03); flex-grow: 1;">
+              <div class="hud-stat-title">Mitigation Vector</div>
+              <div id="mitigation-vector-desc" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3;">
+                Select a satellite and anomaly vector to display AI system mitigation scripts.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- BOTTOM EVENT TERMINAL ROW -->
+  <div class="dashboard-grid" style="grid-template-rows: 1fr; height: 280px; padding-top: 0;">
+    <div class="console-section">
+      
+      <!-- Event Log Terminal -->
+      <div class="panel" id="terminal-panel">
+        <div class="panel-header">
+          <span class="panel-title"><i style="background: var(--neon-cyan);"></i>Live Agents Operations Stream</span>
+          <div class="terminal-controls">
+            <button class="terminal-filter active" onclick="filterLogs('ALL')">All</button>
+            <button class="terminal-filter" onclick="filterLogs('ORCHESTRATOR')">Orchestrator</button>
+            <button class="terminal-filter" onclick="filterLogs('TELEMETRY')">Watcher</button>
+            <button class="terminal-filter" onclick="filterLogs('ANOMALY')">Classifier</button>
+            <button class="terminal-filter" onclick="filterLogs('REPORT')">Reporter</button>
+            <button class="terminal-filter" style="margin-left: 8px; color: var(--neon-red);" onclick="clearLogs()">Clear</button>
+          </div>
+        </div>
+        <div class="terminal-screen" id="terminal-screen-logs">
+          <!-- Logs populate here -->
+        </div>
+      </div>
+
+      <!-- Report Logbook -->
+      <div class="panel" id="report-panel">
+        <div class="panel-header">
+          <span class="panel-title"><i style="background: var(--neon-green);"></i>Mission Logbook</span>
+          <button class="control-btn" id="generate-report-btn" style="padding: 2px 8px; font-size: 0.65rem;">
+            Compile Now
+          </button>
+        </div>
+        <div class="report-display" id="markdown-report-container">
+          <div style="color: var(--text-muted); text-align: center; margin-top: 30px;">
+            No reports generated yet. Waiting for Orchestrator trigger or manual compilation.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT SYSTEM ENGINE -->
+  <script>
+    // AUDIO SYNTHESIZER (Web Audio API)
+    class AudioSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = false;
+        this.alarmInterval = null;
+      }
+      init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled) {
+          this.init();
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        } else {
+          this.stopAlarmLoop();
+        }
+        return this.enabled;
+      }
+      playTone(freq, type, duration, volume = 0.08) {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.warn('Audio Context write fail', e);
+        }
+      }
+      playTick() {
+        this.playTone(1600, 'sine', 0.02, 0.03);
+      }
+      playError() {
+        this.playTone(400, 'triangle', 0.15, 0.06);
+        setTimeout(() => this.playTone(280, 'triangle', 0.25, 0.06), 100);
+      }
+      playSuccess() {
+        const scale = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        scale.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'triangle', 0.2, 0.04), idx * 80);
+        });
+      }
+      playReport() {
+        this.playTone(587.33, 'triangle', 0.08, 0.04);
+        setTimeout(() => this.playTone(880, 'triangle', 0.15, 0.04), 80);
+      }
+      startAlarmLoop() {
+        if (this.alarmInterval) return;
+        this.alarmInterval = setInterval(() => {
+          if (!this.enabled || !this.ctx) return;
+          this.playTone(330, 'sawtooth', 0.25, 0.03);
+          setTimeout(() => this.playTone(300, 'sawtooth', 0.25, 0.03), 300);
+        }, 1200);
+      }
+      stopAlarmLoop() {
+        if (this.alarmInterval) {
+          clearInterval(this.alarmInterval);
+          this.alarmInterval = null;
+        }
+      }
+    }
+
+    const audio = new AudioSynth();
+
+    // DYNAMIC EVENT BUS
+    class AgentEventBus {
+      constructor() {
+        this.listeners = {};
+      }
+      on(event, callback) {
+        if (!this.listeners[event]) this.listeners[event] = [];
+        this.listeners[event].push(callback);
+      }
+      emit(event, data) {
+        if (this.listeners[event]) {
+          this.listeners[event].forEach(cb => cb(data));
+        }
+      }
+    }
+
+    const eventBus = new AgentEventBus();
+
+    // SATELLITE CONFIGURATIONS
+    const SATELLITE_DATA = {
+      insat3dr: {
+        id: 'insat3dr',
+        name: 'INSAT-3DR',
+        type: 'GEO Weather & Search',
+        orbit: 'Geostationary (35,786 km)',
+        color: '#ff9933',
+        parameters: {
+          payloadTemp: { name: 'Payload Temp', val: 32.5, min: 15, max: 68, unit: '°C' },
+          voltage: { name: 'Battery Voltage', val: 32.2, min: 28, max: 34, unit: 'V' },
+          current: { name: 'Solar Array Current', val: 12.4, min: 2, max: 18, unit: 'A' },
+          pitch: { name: 'Attitude Pitch', val: 0.12, min: -0.5, max: 0.5, unit: '°' },
+          signal: { name: 'Transponder Signal', val: -68.0, min: -85, max: -55, unit: 'dBm' }
+        },
+        anomalies: [
+          { id: 'bat_thermal', name: 'Battery Thermal Runaway', param: 'payloadTemp', targetVal: 82.5, cause: 'Primary shunt regulator control loop short-circuit.', mitigation: 'Switching to Secondary Shunt Regulator & Shunting solar panel string 4.' },
+          { id: 'signal_jam', name: 'Transponder Signal Fade', param: 'signal', targetVal: -96.5, cause: 'Solar flare RF ionization interference.', mitigation: 'Activating High-Gain Amplified Payload Mode & shifting transponder channel to backup 2.' }
+        ]
+      },
+      cartosat3: {
+        id: 'cartosat3',
+        name: 'Cartosat-3',
+        type: 'Polar Earth Observation',
+        orbit: 'Sun-synchronous Polar (509 km)',
+        color: '#00f2fe',
+        parameters: {
+          gyro: { name: 'Gyro Spin Rate', val: 0.015, min: -0.05, max: 0.05, unit: 'rad/s' },
+          ssrStorage: { name: 'SSR Storage Space', val: 42.0, min: 0, max: 95, unit: '%' },
+          camTemp: { name: 'Camera Sensor Temp', val: 9.8, min: 5, max: 16, unit: '°C' },
+          battery: { name: 'Battery Charge', val: 88.0, min: 65, max: 100, unit: '%' },
+          starTracker: { name: 'Star Tracker Deviation', val: 0.01, min: 0, max: 0.05, unit: '°' }
+        },
+        anomalies: [
+          { id: 'gyro_overspeed', name: 'Gyroscope Overspeed', param: 'gyro', targetVal: 0.145, cause: 'Attitude control torque wheel momentum saturation.', mitigation: 'Firing magnetic coils for momentum dump & initiating gyro auto-calibration.' },
+          { id: 'ssr_overflow', name: 'Solid State Recorder Overflow', param: 'ssrStorage', targetVal: 98.0, cause: 'Downlink ground station handshaking timeout.', mitigation: 'Force resetting down-converter power & establishing link with secondary Hyderabad station.' }
+        ]
+      },
+      risat2br1: {
+        id: 'risat2br1',
+        name: 'RISAT-2BR1',
+        type: 'LEO Radar Imaging',
+        orbit: 'Low Earth Orbit (576 km)',
+        color: '#00f5a0',
+        parameters: {
+          radarTemp: { name: 'Radar Antenna Temp', val: 14.5, min: -10, max: 40, unit: '°C' },
+          sarPower: { name: 'SAR Transmitter Power', val: 1.15, min: 0.8, max: 1.5, unit: 'kW' },
+          roll: { name: 'Attitude Roll', val: -0.18, min: -1.0, max: 1.0, unit: '°' },
+          busVoltage: { name: 'Bus Voltage', val: 32.8, min: 30, max: 36, unit: 'V' },
+          downlink: { name: 'Downlink Rate', val: 124.0, min: 45, max: 200, unit: 'Mbps' }
+        },
+        anomalies: [
+          { id: 'antenna_overheat', name: 'Radar Antenna Overheat', param: 'radarTemp', targetVal: 58.5, cause: 'SAR transmitter duty cycle exceedance.', mitigation: 'Inhibiting SAR active duty cycles & slewing array surface to deep space cooling angle.' },
+          { id: 'bus_volt_drop', name: 'Power Bus Voltage Drop', param: 'busVoltage', targetVal: 26.5, cause: 'Micro-meteoroid discharge in solar array bypass diode.', mitigation: 'Isolating failed power panel cell 2 & enabling emergency auxiliary bus backup path.' }
+        ]
+      },
+      chandrayaan3: {
+        id: 'chandrayaan3',
+        name: 'Chandrayaan-3',
+        type: 'Lunar Exploration',
+        orbit: 'Lunar Orbit / Surface',
+        color: '#c084fc',
+        parameters: {
+          landerTemp: { name: 'Lander Temp', val: -12.0, min: -180, max: 120, unit: '°C' },
+          fuel: { name: 'Lander Fuel Level', val: 78.4, min: 15, max: 100, unit: '%' },
+          alt: { name: 'Lander Altitude', val: 0.0, min: 0.0, max: 10, unit: 'km' },
+          velocity: { name: 'Lander Velocity', val: 0.0, min: -5, max: 5, unit: 'm/s' },
+          signal: { name: 'Deep Space Signal', val: -84.5, min: -110, max: -65, unit: 'dBm' }
+        },
+        anomalies: [
+          { id: 'fuel_leak', name: 'Descent Propulsion Leak', param: 'fuel', targetVal: 12.0, cause: 'Propellant manifold pressure regulator gasket erosion.', mitigation: 'Sealing propellant primary valve & shifting attitude keeping to backup RCS cold gas lines.' },
+          { id: 'lunar_signal_drop', name: 'Deep Space Link Loss', param: 'signal', targetVal: -118.5, cause: 'High-gain dish antenna off-pointing due to thruster plume.', mitigation: 'Activating low-frequency backup beacon & routing telemetry through Chandrayaan-2 Orbiter.' }
+        ]
+      },
+      adityal1: {
+        id: 'adityal1',
+        name: 'Aditya-L1',
+        type: 'Solar Observatory',
+        orbit: 'Sun-Earth L1 Halo Orbit',
+        color: '#ffdd59',
+        parameters: {
+          velcTemp: { name: 'Coronagraph Temp', val: -4.5, min: -20, max: 10, unit: '°C' },
+          thrusterPres: { name: 'Thruster Pressure', val: 248.0, min: 190, max: 310, unit: 'psi' },
+          windRate: { name: 'Solar Wind Rate', val: 285.0, min: 80, max: 520, unit: 'cps' },
+          magField: { name: 'Mag Field Strength', val: 42.0, min: 2, max: 100, unit: 'nT' },
+          solarDist: { name: 'Solar Distance', val: 1.496, min: 1.490, max: 1.502, unit: 'M km' }
+        },
+        anomalies: [
+          { id: 'velc_overheat', name: 'Coronagraph Thermal Alert', param: 'velcTemp', targetVal: 28.5, cause: 'High-flux solar storm thermal overloading aperture disk.', mitigation: 'Executing solar protection cover closure & executing spacecraft offset roll by 3.5 deg.' },
+          { id: 'thruster_depress', name: 'Propellant Depressurization', param: 'thrusterPres', targetVal: 168.0, cause: 'Helium isolation manifold valve sticking closed.', mitigation: 'Running coil warming sequence on latch valves & pulsing auxiliary regulator.' }
+        ]
+      }
+    };
+
+    // SYSTEM DATA MODELS
+    class Satellite {
+      constructor(cfg) {
+        this.id = cfg.id;
+        this.name = cfg.name;
+        this.type = cfg.type;
+        this.orbit = cfg.orbit;
+        this.color = cfg.color;
+        
+        // Deep copy parameters
+        this.parameters = {};
+        for (const [key, param] of Object.entries(cfg.parameters)) {
+          this.parameters[key] = { ...param, history: Array(30).fill(param.val) };
+        }
+        
+        this.anomalies = cfg.anomalies;
+        this.status = 'healthy'; // 'healthy', 'warning', 'critical'
+        this.activeAnomaly = null;
+        this.resolving = false;
+        this.restoreTargets = {};
+      }
+
+      update() {
+        for (const [key, p] of Object.entries(this.parameters)) {
+          if (this.activeAnomaly && this.activeAnomaly.param === key) {
+            // Push values towards anomaly target
+            const delta = (this.activeAnomaly.targetVal - p.val) * 0.15;
+            p.val += delta;
+          } else if (this.resolving && this.restoreTargets[key] !== undefined) {
+            // Push values back to normal target
+            const delta = (this.restoreTargets[key] - p.val) * 0.15;
+            p.val += delta;
+            if (Math.abs(p.val - this.restoreTargets[key]) < 0.05) {
+              p.val = this.restoreTargets[key];
+              delete this.restoreTargets[key];
+              if (Object.keys(this.restoreTargets).length === 0) {
+                this.resolving = false;
+                this.status = 'healthy';
+              }
+            }
+          } else {
+            // Normal fluctuation
+            const scale = (p.max - p.min) * 0.02;
+            const drift = (Math.random() - 0.5) * scale;
+            p.val += drift;
+            
+            // Boundary constraints
+            if (p.val < p.min - (p.max - p.min) * 0.1) p.val = p.min;
+            if (p.val > p.max + (p.max - p.min) * 0.1) p.val = p.max;
+          }
+
+          // Maintain history queue
+          p.history.push(p.val);
+          if (p.history.length > 30) p.history.shift();
+        }
+      }
+
+      injectAnomaly(anomalyId) {
+        const anomaly = this.anomalies.find(a => a.id === anomalyId);
+        if (!anomaly) return;
+        
+        this.activeAnomaly = anomaly;
+        this.status = 'critical';
+        this.resolving = false;
+        
+        // Record recovery target as current value before spike
+        this.restoreTargets[anomaly.param] = this.parameters[anomaly.param].history[0];
+      }
+
+      resolve(mitigationScript) {
+        if (!this.activeAnomaly) return;
+        
+        this.activeAnomaly = null;
+        this.resolving = true;
+        // The values will slowly float back to restoreTargets via update()
+      }
+    }
+
+    // INITIALIZE SAT STORES
+    const Satellites = {};
+    for (const [key, cfg] of Object.entries(SATELLITE_DATA)) {
+      Satellites[key] = new Satellite(cfg);
+    }
+
+    let selectedSatelliteId = 'insat3dr';
+    let selectedParameterKey = 'payloadTemp';
+
+    // GLOBAL TERMINAL LOGGER
+    const LOGS = [];
+    const MAX_LOGS = 100;
+    let logFilter = 'ALL';
+
+    function addLog(source, msg) {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      const log = { id: Date.now() + Math.random(), time: timeStr, source, msg };
+      
+      LOGS.push(log);
+      if (LOGS.length > MAX_LOGS) LOGS.shift();
+      
+      renderLogs();
+      if (audio.enabled && source !== 'SYSTEM') {
+        audio.playTick();
+      }
+    }
+
+    function renderLogs() {
+      const screen = document.getElementById('terminal-screen-logs');
+      screen.innerHTML = '';
+      
+      const filtered = LOGS.filter(l => logFilter === 'ALL' || l.source === logFilter);
+      
+      filtered.forEach(log => {
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.innerHTML = `
+          <span class="log-time">[${log.time}]</span>
+          <span class="log-tag tag-${log.source}">${log.source}</span>
+          <span class="log-msg">${log.msg}</span>
+        `;
+        screen.appendChild(line);
+      });
+      screen.scrollTop = screen.scrollHeight;
+    }
+
+    function filterLogs(filter) {
+      logFilter = filter;
+      document.querySelectorAll('.terminal-filter').forEach(btn => {
+        if (btn.textContent.toUpperCase() === filter || (filter === 'TELEMETRY' && btn.textContent.toUpperCase() === 'WATCHER') || (filter === 'ANOMALY' && btn.textContent.toUpperCase() === 'CLASSIFIER') || (filter === 'REPORT' && btn.textContent.toUpperCase() === 'REPORTER')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      renderLogs();
+    }
+
+    function clearLogs() {
+      LOGS.length = 0;
+      renderLogs();
+    }
+
+    // MULTI-AGENT SYSTEM SIMULATION
+
+    // AGENT 1 - TelemetryWatcher
+    class TelemetryWatcherAgent {
+      constructor() {
+        this.status = 'idle'; // 'idle', 'running'
+      }
+
+      async scan() {
+        this.status = 'running';
+        updateAgentUI('watcher', 'running', 'SCANNING CHANNELS...');
+        addLog('TELEMETRY', 'Telemetry scanning triggered across all 5 spacecraft arrays...');
+        
+        let anomaliesFound = 0;
+
+        for (const sat of Object.values(Satellites)) {
+          // Visual link scan animation
+          drawFlowLine('agent-card-watcher', `sat-card-${sat.id}`, 'var(--neon-cyan)', true);
+
+          for (const [key, p] of Object.entries(sat.parameters)) {
+            const val = p.val;
+            if (val < p.min || val > p.max) {
+              anomaliesFound++;
+              if (sat.status !== 'critical' || !sat.activeAnomaly) {
+                // If out of range but not officially an anomaly, mark it
+                sat.status = 'critical';
+                // Find a matching predefined anomaly or assign a default
+                const matched = sat.anomalies.find(a => a.param === key) || {
+                  id: 'unknown_drift',
+                  name: `Abnormal ${p.name} Spike`,
+                  param: key,
+                  targetVal: val,
+                  cause: 'Environmental thermal/magnetic telemetry drift',
+                  mitigation: 'Initiating telemetry regulator reset sequence'
+                };
+                sat.activeAnomaly = matched;
+                sat.restoreTargets[key] = p.history[0] || p.min;
+              }
+              
+              addLog('TELEMETRY', `ALERT! Out-of-range sensor feedback on ${sat.name} : ${p.name} = ${val.toFixed(2)} ${p.unit} (Nominal: ${p.min}-${p.max})`);
+              
+              // Broadcast anomaly event
+              eventBus.emit('ANOMALY_DETECTED', {
+                satelliteId: sat.id,
+                anomaly: sat.activeAnomaly
+              });
+            }
+          }
+        }
+
+        document.getElementById('watcher-count').textContent = `Last Checked: ${anomaliesFound} alerts`;
+        
+        await new Promise(r => setTimeout(r, 600)); // scan duration
+        this.status = 'idle';
+        updateAgentUI('watcher', 'idle', 'STANDBY');
+      }
+    }
+
+    const telemetryWatcher = new TelemetryWatcherAgent();
+
+    // AGENT 2 - AnomalyClassifier
+    class AnomalyClassifierAgent {
+      constructor() {
+        this.status = 'idle';
+        this.resolvedCount = 0;
+        
+        // Listen to anomaly events
+        eventBus.on('ANOMALY_DETECTED', (data) => this.handleAnomaly(data));
+      }
+
+      async handleAnomaly(data) {
+        if (this.status === 'working') return; // Debounce multiple events during resolution
+        
+        this.status = 'working';
+        const { satelliteId, anomaly } = data;
+        const sat = Satellites[satelliteId];
+
+        updateAgentUI('classifier', 'working', `DIAGNOSING ${sat.name}...`);
+        addLog('ANOMALY', `ANOMALY_DETECTED packet received. Origin: ${sat.name}. Analyzing telemetry registers...`);
+        audio.playError();
+        audio.startAlarmLoop();
+        
+        await new Promise(r => setTimeout(r, 1200)); // Diagnosis simulation
+
+        const criticalLevel = Math.abs(sat.parameters[anomaly.param].val) > sat.parameters[anomaly.param].max * 1.1 ? 'CRITICAL' : 'WARNING';
+        
+        addLog('ANOMALY', `Diagnosis Complete. Class: ${criticalLevel} | Vector: ${anomaly.name} | Root Cause: ${anomaly.cause}`);
+        addLog('ANOMALY', `Deploying mitigation script: "${anomaly.mitigation}"`);
+
+        // Draw line from classifier to satellite representing command upload
+        drawFlowLine('agent-card-classifier', `sat-card-${satelliteId}`, 'var(--neon-purple)', true);
+
+        await new Promise(r => setTimeout(r, 2000)); // Resolution script execution
+        
+        sat.resolve(anomaly.mitigation);
+        this.resolvedCount++;
+        document.getElementById('classifier-resolved').textContent = `Resolved: ${this.resolvedCount}`;
+        
+        addLog('ANOMALY', `SUCCESS: Command block verified on ${sat.name}. Telemetry stabilizing. Re-indexing telemetry channel.`);
+        audio.stopAlarmLoop();
+        audio.playSuccess();
+
+        eventBus.emit('ANOMALY_RESOLVED', { satelliteId });
+        
+        this.status = 'idle';
+        updateAgentUI('classifier', 'idle', 'LISTENING FOR EVENT');
+      }
+    }
+
+    const anomalyClassifier = new AnomalyClassifierAgent();
+
+    // AGENT 3 - MissionReportWriter
+    class MissionReportWriterAgent {
+      constructor() {
+        this.status = 'idle';
+      }
+
+      async compileReport() {
+        this.status = 'running';
+        updateAgentUI('reporter', 'running', 'SNAPSHOT CAPTURE...');
+        addLog('REPORT', 'Triggering system-wide status snapshot & report generation...');
+        audio.playReport();
+        
+        await new Promise(r => setTimeout(r, 800)); // Report compile wait
+        
+        const timestamp = new Date().toISOString();
+        let healthyCount = 0;
+        let anomalyCount = 0;
+        
+        let satMarkdown = '';
+        for (const sat of Object.values(Satellites)) {
+          if (sat.status === 'healthy') healthyCount++;
+          else anomalyCount++;
+
+          satMarkdown += `
+<div class="report-sect-md">${sat.name} [${sat.status.toUpperCase()}]</div>
+<div class="report-row-md"><span>Orbit:</span> <span>${sat.orbit}</span></div>`;
+          
+          for (const [key, p] of Object.entries(sat.parameters)) {
+            const isAnomaly = p.val < p.min || p.val > p.max;
+            satMarkdown += `
+<div class="report-row-md">
+  <span> - ${p.name}:</span>
+  <span class="${isAnomaly ? 'val-fail' : 'val-ok'}">${p.val.toFixed(2)} ${p.unit}</span>
+</div>`;
+          }
+        }
+
+        const reportHtml = `
+          <div class="report-title-md">ISRO MISSION INTELLIGENCE REPORT</div>
+          <div class="report-row-md"><span>Generated At:</span> <span>${timestamp.replace('T', ' ').substring(0, 19)} UTC</span></div>
+          <div class="report-row-md"><span>Fleet Health:</span> <span class="${anomalyCount > 0 ? 'val-fail' : 'val-ok'}">${healthyCount}/5 nominal</span></div>
+          <div style="margin-top: 8px;"></div>
+          ${satMarkdown}
+        `;
+
+        document.getElementById('markdown-report-container').innerHTML = reportHtml;
+        addLog('REPORT', 'New Mission Intelligence status report compiled successfully in logbook.');
+        
+        this.status = 'idle';
+        updateAgentUI('reporter', 'idle', 'STANDBY');
+      }
+    }
+
+    const missionReportWriter = new MissionReportWriterAgent();
+
+    // AGENT 4 - OrchestratorAgent (Master Loop Coordinator)
+    class OrchestratorAgent {
+      constructor() {
+        this.clockTicks = 0;
+        this.status = 'idle';
+        this.watcherTimer = 5;
+        this.reporterTimer = 60;
+      }
+
+      tick() {
+        this.clockTicks++;
+        this.watcherTimer--;
+        this.reporterTimer--;
+
+        document.getElementById('orchestrator-timer').textContent = `Cycle: ${this.clockTicks}s`;
+        document.getElementById('watcher-count').textContent = `Scan in: ${this.watcherTimer}s`;
+        document.getElementById('reporter-timer').textContent = `Report in: ${this.reporterTimer}s`;
+
+        // TelemetryWatcher schedule
+        if (this.watcherTimer <= 0) {
+          this.watcherTimer = 5;
+          this.executeWatcher();
+        }
+
+        // MissionReportWriter schedule
+        if (this.reporterTimer <= 0) {
+          this.reporterTimer = 60;
+          this.executeReporter();
+        }
+      }
+
+      async executeWatcher() {
+        this.status = 'running';
+        updateAgentUI('orchestrator', 'running', 'SCHEDULING WATCHER...');
+        drawFlowLine('agent-card-orchestrator', 'agent-card-watcher', 'var(--isro-orange)', false);
+        
+        await telemetryWatcher.scan();
+        
+        this.status = 'idle';
+        updateAgentUI('orchestrator', 'idle', 'STANDBY');
+      }
+
+      async executeReporter() {
+        this.status = 'running';
+        updateAgentUI('orchestrator', 'running', 'SCHEDULING REPORTER...');
+        drawFlowLine('agent-card-orchestrator', 'agent-card-reporter', 'var(--isro-orange)', false);
+        
+        await missionReportWriter.compileReport();
+        
+        this.status = 'idle';
+        updateAgentUI('orchestrator', 'idle', 'STANDBY');
+      }
+    }
+
+    const orchestrator = new OrchestratorAgent();
+
+    // UI AGENT DISPLAY HELPER
+    function updateAgentUI(agentKey, state, actionText) {
+      const card = document.getElementById(`agent-card-${agentKey}`);
+      if (!card) return;
+
+      if (state === 'running') {
+        card.className = 'agent-card running';
+      } else if (state === 'working') {
+        card.className = 'agent-card working';
+      } else {
+        card.className = 'agent-card';
+      }
+
+      const actionEl = card.querySelector('.agent-action');
+      if (actionEl) actionEl.textContent = actionText;
+    }
+
+    // UPDATE FLUID TELEMETRY IN THE DOM
+    function updateTelemetryDOM() {
+      let isSystemNominal = true;
+
+      for (const sat of Object.values(Satellites)) {
+        sat.update();
+        
+        const card = document.getElementById(`sat-card-${sat.id}`);
+        if (!card) continue;
+
+        // Update card selected status
+        if (sat.id === selectedSatelliteId) {
+          card.classList.add('selected');
+        } else {
+          card.classList.remove('selected');
+        }
+
+        // Update health styling
+        const statusBadge = card.querySelector('.sat-status-badge');
+        statusBadge.textContent = sat.status.toUpperCase();
+        statusBadge.className = `sat-status-badge status-${sat.status}`;
+        
+        if (sat.status === 'critical') {
+          card.classList.add('has-anomaly');
+          isSystemNominal = false;
+        } else {
+          card.classList.remove('has-anomaly');
+        }
+
+        // Update the telemetry labels inside satellite cards
+        for (const [key, p] of Object.entries(sat.parameters)) {
+          const row = card.querySelector(`.param-row-${key}`);
+          if (!row) continue;
+
+          row.querySelector('.param-value').textContent = `${p.val.toFixed(1)} ${p.unit}`;
+          
+          // Calculate percentage for progress fill
+          let percent = ((p.val - p.min) / (p.max - p.min)) * 100;
+          percent = Math.max(5, Math.min(95, percent)); // Keep visual boundary readable
+
+          const fill = row.nextElementSibling.querySelector('.param-bar-fill');
+          fill.style.width = `${percent}%`;
+
+          // Handle color alerts on telemetry bars
+          if (p.val < p.min || p.val > p.max) {
+            fill.classList.add('fill-error');
+            row.classList.add('param-anomaly');
+          } else {
+            fill.classList.remove('fill-error');
+            row.classList.remove('param-anomaly');
+          }
+        }
+      }
+
+      // Update Header System Status
+      const globalDot = document.getElementById('system-health-dot');
+      const globalText = document.getElementById('system-health-text');
+      if (isSystemNominal) {
+        globalDot.className = 'status-dot';
+        globalText.textContent = 'NOMINAL';
+        globalText.style.color = 'var(--neon-green)';
+      } else {
+        globalDot.className = 'status-dot anomaly';
+        globalText.textContent = 'FAULT DETECTED';
+        globalText.style.color = 'var(--neon-red)';
+      }
+    }
+
+    // DRAW DYNAMIC FLOW LINE ON CANVAS OVERLAY
+    function drawFlowLine(fromId, toId, color, pulse = false) {
+      const fromEl = document.getElementById(fromId);
+      const toEl = document.getElementById(toId);
+      const svg = document.getElementById('flow-overlay');
+      if (!fromEl || !toEl || !svg) return;
+
+      const svgRect = svg.getBoundingClientRect();
+      const fromRect = fromEl.getBoundingClientRect();
+      const toRect = toEl.getBoundingClientRect();
+
+      const x1 = fromRect.left + fromRect.width / 2 - svgRect.left;
+      const y1 = fromRect.top + fromRect.height / 2 - svgRect.top;
+      const x2 = toRect.left + toRect.width / 2 - svgRect.left;
+      const y2 = toRect.top + toRect.height / 2 - svgRect.top;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const dx = Math.abs(x2 - x1) * 0.4;
+      const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '0.85');
+      
+      if (pulse) {
+        path.setAttribute('class', 'glowing-flow-path');
+      }
+
+      svg.appendChild(path);
+
+      setTimeout(() => {
+        path.style.transition = 'opacity 0.6s ease';
+        path.style.opacity = '0';
+        setTimeout(() => path.remove(), 600);
+      }, 1000);
+    }
+
+    // ORBITAL SPACE VISUALIZATION (CANVAS 2D)
+    const spaceCanvas = document.getElementById('space-canvas');
+    const spaceCtx = spaceCanvas.getContext('2d');
+    let orbitAngle = 0;
+
+    function resizeSpaceCanvas() {
+      const parent = spaceCanvas.parentElement;
+      spaceCanvas.width = parent.clientWidth;
+      spaceCanvas.height = parent.clientHeight;
+    }
+
+    window.addEventListener('resize', resizeSpaceCanvas);
+    resizeSpaceCanvas();
+
+    function drawSpaceScene() {
+      if (!spaceCanvas.width) return;
+      
+      spaceCtx.clearRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+      const cx = spaceCanvas.width / 2;
+      const cy = spaceCanvas.height / 2;
+
+      // Increment rotation angles
+      orbitAngle += 0.005;
+
+      // 1. Draw space/stars background coordinates (subtle ticks)
+      spaceCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+      spaceCtx.beginPath();
+      spaceCtx.moveTo(0, cy); spaceCtx.lineTo(spaceCanvas.width, cy);
+      spaceCtx.moveTo(cx, 0); spaceCtx.lineTo(cx, spaceCanvas.height);
+      spaceCtx.stroke();
+
+      // 2. Draw Earth
+      const earthRadius = 32;
+      const earthGlow = spaceCtx.createRadialGradient(cx, cy, 2, cx, cy, earthRadius + 15);
+      earthGlow.addColorStop(0, '#0052d4');
+      earthGlow.addColorStop(0.5, '#4364f7');
+      earthGlow.addColorStop(0.9, '#6fb1fc');
+      earthGlow.addColorStop(1, 'transparent');
+      
+      spaceCtx.fillStyle = earthGlow;
+      spaceCtx.beginPath();
+      spaceCtx.arc(cx, cy, earthRadius + 15, 0, Math.PI * 2);
+      spaceCtx.fill();
+
+      // Core Earth Circle
+      spaceCtx.fillStyle = '#0f172a';
+      spaceCtx.strokeStyle = 'rgba(0, 242, 254, 0.4)';
+      spaceCtx.lineWidth = 1.5;
+      spaceCtx.beginPath();
+      spaceCtx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
+      spaceCtx.fill();
+      spaceCtx.stroke();
+      
+      // Draw Earth India indicator (small orange dot inside Earth)
+      spaceCtx.fillStyle = 'rgba(255, 153, 51, 0.7)';
+      spaceCtx.beginPath();
+      spaceCtx.arc(cx + 4, cy - 8, 3, 0, Math.PI * 2);
+      spaceCtx.fill();
+
+      // 3. Setup Orbits and positions
+      const orbits = {
+        risat2br1: { r: 52, speed: 1.8, color: 'var(--neon-green)', polar: false },
+        cartosat3: { rx: 78, ry: 40, speed: 1.2, color: 'var(--neon-cyan)', polar: true },
+        insat3dr: { r: 104, speed: 0.6, color: 'var(--isro-orange)', polar: false },
+        chandrayaan3: { r: 140, speed: 0.3, color: 'var(--neon-purple)', lunar: true },
+        adityal1: { rx: 25, ry: 12, speed: 0.5, color: '#ffdd59', halo: true }
+      };
+
+      // Draw Orbit Lines
+      // LEO (RISAT)
+      drawOrbitEllipse(spaceCtx, cx, cy, orbits.risat2br1.r, orbits.risat2br1.r, false);
+      // SSO (Cartosat)
+      drawOrbitEllipse(spaceCtx, cx, cy, orbits.cartosat3.rx, orbits.cartosat3.ry, true);
+      // GEO (INSAT)
+      drawOrbitEllipse(spaceCtx, cx, cy, orbits.insat3dr.r, orbits.insat3dr.r, false);
+      // Lunar (Chandrayaan orbit line)
+      drawOrbitEllipse(spaceCtx, cx, cy, orbits.chandrayaan3.r, orbits.chandrayaan3.r, false);
+
+      // Draw Sun Direction Line for L1
+      spaceCtx.strokeStyle = 'rgba(255, 221, 89, 0.08)';
+      spaceCtx.lineWidth = 1.5;
+      spaceCtx.setLineDash([4, 6]);
+      spaceCtx.beginPath();
+      spaceCtx.moveTo(cx, cy);
+      spaceCtx.lineTo(spaceCanvas.width - 20, cy);
+      spaceCtx.stroke();
+      spaceCtx.setLineDash([]);
+
+      // Draw L1 Point marker
+      const l1x = cx + 185;
+      const l1y = cy;
+      spaceCtx.strokeStyle = 'rgba(255, 221, 89, 0.4)';
+      spaceCtx.lineWidth = 1;
+      spaceCtx.beginPath();
+      spaceCtx.moveTo(l1x - 5, l1y); spaceCtx.lineTo(l1x + 5, l1y);
+      spaceCtx.moveTo(l1x, l1y - 5); spaceCtx.lineTo(l1x, l1y + 5);
+      spaceCtx.stroke();
+      
+      // Draw L1 Halo Orbit Line
+      drawOrbitEllipse(spaceCtx, l1x, l1y, orbits.adityal1.rx, orbits.adityal1.ry, false);
+
+      // Render satellite bodies & positions
+      for (const [id, sat] of Object.entries(Satellites)) {
+        const o = orbits[id];
+        let sx = cx, sy = cy;
+
+        if (o.polar) {
+          // Polar rotated orbit coordinates
+          const angle = orbitAngle * o.speed;
+          sx = cx + o.rx * Math.cos(angle);
+          sy = cy + o.ry * Math.sin(angle);
+          // Rotate coordinates to represent vertical polar pass
+          const rotAngle = -Math.PI / 4;
+          const rx = (sx - cx) * Math.cos(rotAngle) - (sy - cy) * Math.sin(rotAngle) + cx;
+          const ry = (sx - cx) * Math.sin(rotAngle) + (sy - cy) * Math.cos(rotAngle) + cy;
+          sx = rx;
+          sy = ry;
+        } else if (o.lunar) {
+          // Earth-Moon-Lander system
+          const moonAngle = orbitAngle * o.speed;
+          const mx = cx + o.r * Math.cos(moonAngle);
+          const my = cy + o.r * Math.sin(moonAngle);
+          
+          // Draw Moon
+          spaceCtx.fillStyle = '#475569';
+          spaceCtx.beginPath();
+          spaceCtx.arc(mx, my, 8, 0, Math.PI * 2);
+          spaceCtx.fill();
+          
+          // Draw Chandrayaan-3 Orbit around Moon
+          spaceCtx.strokeStyle = 'rgba(192, 132, 252, 0.2)';
+          spaceCtx.lineWidth = 0.8;
+          spaceCtx.setLineDash([2, 3]);
+          spaceCtx.beginPath();
+          spaceCtx.arc(mx, my, 14, 0, Math.PI * 2);
+          spaceCtx.stroke();
+          spaceCtx.setLineDash([]);
+
+          // Chandrayaan-3 orbiting the Moon
+          const cyAngle = orbitAngle * 2.5;
+          sx = mx + 14 * Math.cos(cyAngle);
+          sy = my + 14 * Math.sin(cyAngle);
+        } else if (o.halo) {
+          // Orbit around L1 point
+          const angle = orbitAngle * o.speed;
+          sx = l1x + o.rx * Math.cos(angle);
+          sy = l1y + o.ry * Math.sin(angle);
+        } else {
+          // standard equatorial circular orbit
+          const angle = orbitAngle * o.speed;
+          sx = cx + o.r * Math.cos(angle);
+          sy = cy + o.r * Math.sin(angle);
+        }
+
+        // Draw Sat dot
+        const size = (sat.id === selectedSatelliteId) ? 7 : 5;
+        const color = (sat.status === 'critical') ? 'var(--neon-red)' : sat.color;
+        
+        // Glow effect
+        spaceCtx.shadowColor = color;
+        spaceCtx.shadowBlur = (sat.status === 'critical') ? 12 : 6;
+        spaceCtx.fillStyle = color;
+        spaceCtx.beginPath();
+        spaceCtx.arc(sx, sy, size, 0, Math.PI * 2);
+        spaceCtx.fill();
+        
+        // Reset shadows
+        spaceCtx.shadowColor = 'transparent';
+        spaceCtx.shadowBlur = 0;
+
+        // Label
+        spaceCtx.fillStyle = 'rgba(255,255,255,0.7)';
+        spaceCtx.font = '9px var(--font-mono)';
+        spaceCtx.fillText(sat.name, sx + 8, sy + 3);
+
+        // Store positions for screen collision or selection clicks
+        sat.screenX = sx;
+        sat.screenY = sy;
+      }
+
+      requestAnimationFrame(drawSpaceScene);
+    }
+
+    function drawOrbitEllipse(ctx, cx, cy, rx, ry, rotate) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 5]);
+      ctx.beginPath();
+      if (rotate) {
+        ctx.ellipse(cx, cy, rx, ry, -Math.PI / 4, 0, Math.PI * 2);
+      } else {
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // CANVAS MAPPING SELECTION ON SPACE MAP
+    spaceCanvas.addEventListener('click', (e) => {
+      const rect = spaceCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      let found = null;
+      let minDist = 18;
+
+      for (const sat of Object.values(Satellites)) {
+        const dist = Math.hypot(sat.screenX - mx, sat.screenY - my);
+        if (dist < minDist) {
+          minDist = dist;
+          found = sat.id;
+        }
+      }
+
+      if (found) {
+        selectSatellite(found);
+      }
+    });
+
+    // SCROLLING REAL-TIME OSCILLOSCOPE GRAPH
+    const chartCanvas = document.getElementById('telemetry-chart');
+    const chartCtx = chartCanvas.getContext('2d');
+
+    function resizeChartCanvas() {
+      const parent = chartCanvas.parentElement;
+      chartCanvas.width = parent.clientWidth;
+      chartCanvas.height = parent.clientHeight;
+    }
+    resizeChartCanvas();
+    window.addEventListener('resize', resizeChartCanvas);
+
+    function drawChart() {
+      if (!chartCanvas.width) return;
+      
+      chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+      const sat = Satellites[selectedSatelliteId];
+      if (!sat) return;
+
+      const p = sat.parameters[selectedParameterKey];
+      if (!p) return;
+
+      const w = chartCanvas.width;
+      const h = chartCanvas.height;
+      const pad = 24;
+
+      // Draw Grid Lines & Boundaries
+      chartCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+      chartCtx.lineWidth = 1;
+      
+      // Vertical grid lines
+      for (let x = pad; x < w - pad; x += (w - 2 * pad) / 6) {
+        chartCtx.beginPath();
+        chartCtx.moveTo(x, pad);
+        chartCtx.lineTo(x, h - pad);
+        chartCtx.stroke();
+      }
+
+      // Horizontal grid lines
+      for (let y = pad; y < h - pad; y += (h - 2 * pad) / 4) {
+        chartCtx.beginPath();
+        chartCtx.moveTo(pad, y);
+        chartCtx.lineTo(w - pad, y);
+        chartCtx.stroke();
+      }
+
+      // Normal bounds lines (Red/Orange dashed lines if current val gets abnormal)
+      const graphMinVal = p.min - (p.max - p.min) * 0.3;
+      const graphMaxVal = p.max + (p.max - p.min) * 0.3;
+
+      const yValToPixel = (val) => {
+        const pct = (val - graphMinVal) / (graphMaxVal - graphMinVal);
+        return h - pad - pct * (h - 2 * pad);
+      };
+
+      const yMaxLine = yValToPixel(p.max);
+      const yMinLine = yValToPixel(p.min);
+
+      chartCtx.strokeStyle = 'rgba(255, 56, 56, 0.4)';
+      chartCtx.lineWidth = 1;
+      chartCtx.setLineDash([4, 4]);
+      
+      // Upper Limit
+      chartCtx.beginPath();
+      chartCtx.moveTo(pad, yMaxLine);
+      chartCtx.lineTo(w - pad, yMaxLine);
+      chartCtx.stroke();
+      
+      // Lower Limit
+      chartCtx.beginPath();
+      chartCtx.moveTo(pad, yMinLine);
+      chartCtx.lineTo(w - pad, yMinLine);
+      chartCtx.stroke();
+      
+      chartCtx.setLineDash([]);
+
+      // Label Bounds
+      chartCtx.fillStyle = 'rgba(255, 56, 56, 0.7)';
+      chartCtx.font = '8px var(--font-mono)';
+      chartCtx.fillText(`MAX: ${p.max} ${p.unit}`, w - pad - 60, yMaxLine - 4);
+      chartCtx.fillText(`MIN: ${p.min} ${p.unit}`, w - pad - 60, yMinLine + 10);
+
+      // Plot data points
+      const history = p.history;
+      if (!history || history.length === 0) return;
+
+      const step = (w - 2 * pad) / 29;
+      
+      // Draw Gradient Fill Area
+      const lineGlow = chartCtx.createLinearGradient(0, 0, 0, h);
+      lineGlow.addColorStop(0, (sat.status === 'critical') ? 'rgba(255, 56, 56, 0.15)' : 'rgba(0, 242, 254, 0.15)');
+      lineGlow.addColorStop(1, 'transparent');
+
+      chartCtx.fillStyle = lineGlow;
+      chartCtx.beginPath();
+      chartCtx.moveTo(pad, h - pad);
+
+      for (let i = 0; i < history.length; i++) {
+        const x = pad + i * step;
+        const y = yValToPixel(history[i]);
+        chartCtx.lineTo(x, y);
+      }
+      chartCtx.lineTo(pad + (history.length - 1) * step, h - pad);
+      chartCtx.closePath();
+      chartCtx.fill();
+
+      // Draw Main line
+      chartCtx.strokeStyle = (sat.status === 'critical') ? 'var(--neon-red)' : 'var(--neon-cyan)';
+      chartCtx.lineWidth = 2;
+      chartCtx.beginPath();
+      
+      for (let i = 0; i < history.length; i++) {
+        const x = pad + i * step;
+        const y = yValToPixel(history[i]);
+        if (i === 0) chartCtx.moveTo(x, y);
+        else chartCtx.lineTo(x, y);
+      }
+      chartCtx.stroke();
+
+      // Pulse a cursor dot at the end
+      const lastIdx = history.length - 1;
+      const lx = pad + lastIdx * step;
+      const ly = yValToPixel(history[lastIdx]);
+      
+      chartCtx.fillStyle = (sat.status === 'critical') ? 'var(--neon-red)' : 'var(--neon-cyan)';
+      chartCtx.beginPath();
+      chartCtx.arc(lx, ly, 4, 0, Math.PI * 2);
+      chartCtx.fill();
+    }
+
+    setInterval(drawChart, 200);
+
+    // INTERACTIVE SATELLITE HUD SELECTION
+    function selectSatellite(satId) {
+      selectedSatelliteId = satId;
+      const sat = Satellites[satId];
+      if (!sat) return;
+
+      // Update Injector details
+      document.getElementById('selected-sat-title').textContent = sat.name;
+      document.getElementById('injector-target-sat').textContent = `${sat.name} (${sat.type})`;
+      
+      // Auto select the first parameter key of this satellite
+      selectedParameterKey = Object.keys(sat.parameters)[0];
+      document.getElementById('selected-param-title').textContent = `Parameter: ${sat.parameters[selectedParameterKey].name}`;
+
+      // Re-populate parameter button selectors
+      const btnContainer = document.getElementById('hud-param-buttons');
+      btnContainer.innerHTML = '';
+      
+      for (const [key, p] of Object.entries(sat.parameters)) {
+        const btn = document.createElement('button');
+        btn.className = `control-btn ${key === selectedParameterKey ? 'active' : ''}`;
+        btn.textContent = p.name;
+        btn.onclick = () => {
+          selectedParameterKey = key;
+          document.getElementById('selected-param-title').textContent = `Parameter: ${p.name}`;
+          document.querySelectorAll('#hud-param-buttons .control-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        };
+        btnContainer.appendChild(btn);
+      }
+
+      // Populate anomaly injector dropdown
+      const select = document.getElementById('anomaly-vector-select');
+      select.innerHTML = '<option value="">-- No anomaly selected --</option>';
+      
+      sat.anomalies.forEach(anomaly => {
+        const opt = document.createElement('option');
+        opt.value = anomaly.id;
+        opt.textContent = anomaly.name;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('inject-anomaly-btn').disabled = true;
+      document.getElementById('mitigation-vector-desc').textContent = "Select an anomaly vector above to view AI system mitigation scripts.";
+      
+      updateTelemetryDOM();
+    }
+
+    // Dropdown change updates explanation
+    document.getElementById('anomaly-vector-select').addEventListener('change', (e) => {
+      const sat = Satellites[selectedSatelliteId];
+      const anomalyId = e.target.value;
+      const btn = document.getElementById('inject-anomaly-btn');
+      const desc = document.getElementById('mitigation-vector-desc');
+
+      if (!anomalyId) {
+        btn.disabled = true;
+        desc.textContent = "Select a satellite and anomaly vector to display AI system mitigation scripts.";
+        return;
+      }
+
+      const anomaly = sat.anomalies.find(a => a.id === anomalyId);
+      if (anomaly) {
+        btn.disabled = false;
+        desc.innerHTML = `
+          <strong>Root Cause:</strong> ${anomaly.cause}<br>
+          <strong>Mitigation Command:</strong> <span style="color: var(--neon-purple);">${anomaly.mitigation}</span>
+        `;
+      }
+    });
+
+    // Inject fault trigger
+    document.getElementById('inject-anomaly-btn').addEventListener('click', () => {
+      const select = document.getElementById('anomaly-vector-select');
+      const anomalyId = select.value;
+      const sat = Satellites[selectedSatelliteId];
+
+      if (sat && anomalyId) {
+        sat.injectAnomaly(anomalyId);
+        addLog('SYSTEM', `Fault injected on ${sat.name} register. Anomaly: "${sat.activeAnomaly.name}"`);
+        
+        // Visual flow from Injector to Satellite card
+        drawFlowLine('inject-anomaly-btn', `sat-card-${sat.id}`, 'var(--neon-red)', true);
+        
+        // Reset injector selector
+        select.value = '';
+        document.getElementById('inject-anomaly-btn').disabled = true;
+        document.getElementById('mitigation-vector-desc').textContent = "Fault successfully dispatched. TelemetryWatcher scanning pending...";
+      }
+    });
+
+    // MASTER RESET BUTTON
+    document.getElementById('reset-system-btn').addEventListener('click', () => {
+      addLog('SYSTEM', 'Master hardware reset command sent to spacecraft fleet.');
+      audio.stopAlarmLoop();
+      
+      for (const [key, rawCfg] of Object.entries(SATELLITE_DATA)) {
+        const sat = Satellites[key];
+        sat.activeAnomaly = null;
+        sat.resolving = false;
+        sat.status = 'healthy';
+        
+        // Restore values
+        for (const [pk, param] of Object.entries(rawCfg.parameters)) {
+          sat.parameters[pk].val = param.val;
+        }
+      }
+      
+      updateTelemetryDOM();
+      selectSatellite(selectedSatelliteId);
+      addLog('SYSTEM', 'Fleet registers stabilized to nominal default states.');
+      audio.playSuccess();
+    });
+
+    // AUDIO TOGGLE BUTTON
+    const audioBtn = document.getElementById('audio-toggle-btn');
+    audioBtn.addEventListener('click', () => {
+      const isEnabled = audio.toggle();
+      if (isEnabled) {
+        audioBtn.textContent = 'Audio: ON';
+        audioBtn.classList.add('active');
+        audio.playSuccess();
+      } else {
+        audioBtn.textContent = 'Audio: OFF';
+        audioBtn.classList.remove('active');
+      }
+    });
+
+    // MANUAL REPORT COMPILE BUTTON
+    document.getElementById('generate-report-btn').addEventListener('click', () => {
+      missionReportWriter.compileReport();
+    });
+
+    // GLOBAL TICK LOOPS
+    // 1. Clock Display Update (200ms)
+    setInterval(() => {
+      const now = new Date();
+      
+      // Format UTC
+      const utcStr = now.toISOString().replace('T', ' ').substring(11, 19) + ' UTC';
+      document.getElementById('time-utc').textContent = utcStr;
+      
+      // Format IST (UTC + 5:30)
+      const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+      const istStr = istTime.toISOString().replace('T', ' ').substring(11, 19) + ' IST';
+      document.getElementById('time-ist').textContent = istStr;
+    }, 200);
+
+    // 2. Real-time Telemetry Values Fluctuation (1s)
+    setInterval(() => {
+      updateTelemetryDOM();
+    }, 1000);
+
+    // 3. Orchestrator Loop Tick (1s)
+    setInterval(() => {
+      orchestrator.tick();
+    }, 1000);
+
+    // INITIALIZATION
+    window.onload = () => {
+      selectSatellite('insat3dr');
+      addLog('SYSTEM', 'ISRO Mission Intelligence Control Suite initialized.');
+      addLog('SYSTEM', 'Listening for spacecraft downlink telemetry feeds...');
+      
+      // Kick off scene loops
+      drawSpaceScene();
+    };
+  </script>
+</body>
+</html>
