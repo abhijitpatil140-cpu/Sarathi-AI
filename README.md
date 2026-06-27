@@ -140,9 +140,6 @@ The dashboard uses **WebSockets** for zero-latency live updates and a **glassmor
 
 ---
 
-<img width="1192" height="896" alt="Image" src="https://github.com/user-attachments/assets/7dd19876-9b57-421d-a5e3-5351a73efb95" />
----
-
 <img width="1908" height="900" alt="Image" src="https://github.com/user-attachments/assets/3ca613c5-9bbd-4092-b644-b7fd60d633cb" />
 ---
 
