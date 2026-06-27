@@ -136,6 +136,16 @@ The live command dashboard is accessible at **`http://localhost:3000`** and feat
 The dashboard uses **WebSockets** for zero-latency live updates and a **glassmorphic dark design** for a premium operator-grade experience.
 
 ---
+<img width="1906" height="902" alt="Image" src="https://github.com/user-attachments/assets/a5a95fc5-d3bd-43ab-b5cb-f1cb15c51088" />
+
+<img width="1192" height="896" alt="Image" src="https://github.com/user-attachments/assets/7dd19876-9b57-421d-a5e3-5351a73efb95" />
+
+<img width="1908" height="900" alt="Image" src="https://github.com/user-attachments/assets/3ca613c5-9bbd-4092-b644-b7fd60d633cb" />
+
+<img width="1873" height="841" alt="Image" src="https://github.com/user-attachments/assets/3650b319-a8b8-4f91-8527-7d9cfaa92264" />
+
+
+https://github.com/user-attachments/assets/22bf6079-70c9-40c9-9095-fcf21e296ee2c9-9095-fcf21e296ee2
 
 ## 🛡️ Security Architecture
 
