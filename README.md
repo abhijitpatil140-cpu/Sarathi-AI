@@ -135,20 +135,14 @@ The live command dashboard is accessible at **`http://localhost:3000`** and feat
 
 The dashboard uses **WebSockets** for zero-latency live updates and a **glassmorphic dark design** for a premium operator-grade experience.
 
----
-<img width="1906" height="902" alt="Image" src="https://github.com/user-attachments/assets/a5a95fc5-d3bd-43ab-b5cb-f1cb15c51088" />
-
+https://github.com/user-attachments/assets/33e6483c-c707-46ac-a700-886eee3b0461
 ---
 
-<img width="1908" height="900" alt="Image" src="https://github.com/user-attachments/assets/3ca613c5-9bbd-4092-b644-b7fd60d633cb" />
+<img width="1891" height="905" alt="Image" src="https://github.com/user-attachments/assets/bf7690e3-f71a-4866-a53b-e98d043aed65" />
 ---
 
-<img width="1873" height="841" alt="Image" src="https://github.com/user-attachments/assets/3650b319-a8b8-4f91-8527-7d9cfaa92264" />
+<img width="1879" height="847" alt="Image" src="https://github.com/user-attachments/assets/1f395fd6-0382-48e2-84d1-c75879990279" />
 ---
-
-
-https://github.com/user-attachments/assets/72caaf5c-86be-4f50-923d-e121a87b2aa2
-
 ## 🛡️ Security Architecture
 
 Sārathi AI enforces safety and validation at **two levels**:
