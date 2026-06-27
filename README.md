@@ -147,7 +147,7 @@ The dashboard uses **WebSockets** for zero-latency live updates and a **glassmor
 ---
 
 
-https://github.com/user-attachments/assets/22bf6079-70c9-40c9-9095-fcf21e296ee2c9-9095-fcf21e296ee2
+https://github.com/user-attachments/assets/72caaf5c-86be-4f50-923d-e121a87b2aa2
 
 ## 🛡️ Security Architecture
 
