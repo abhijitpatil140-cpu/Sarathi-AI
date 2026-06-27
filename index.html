@@ -955,6 +955,22 @@
               <div class="agent-action" id="reporter-action">IDLE</div>
             </div>
 
+            <!-- Agent 5: FaultPredictor -->
+            <div class="agent-card" id="agent-card-predictor">
+              <div class="agent-header">
+                <span class="agent-name">
+                  <span class="status-dot" style="background-color: #ffdd59; box-shadow: 0 0 6px #ffdd59;"></span>
+                  FaultPredictorAgent
+                </span>
+                <span class="agent-badge">Predictor</span>
+              </div>
+              <div class="agent-details">
+                <span>Role: Predictive Injection</span>
+                <span id="predictor-status">Monitoring Drift</span>
+              </div>
+              <div class="agent-action" id="predictor-action">SWEEPING TRENDS</div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -1104,34 +1120,43 @@
           </div>
         </div>
 
-        <!-- Right Side: Anomaly Injector Console -->
+        <!-- Right Side: Predictive Anomaly Injector Console -->
         <div class="panel control-hud-panel">
           <div class="panel-header">
-            <span class="panel-title"><i style="background: var(--isro-orange);"></i>Fault Injection</span>
+            <span class="panel-title"><i style="background: #ffdd59; box-shadow: 0 0 6px #ffdd59;"></i>Predictive Fault Injector</span>
           </div>
           <div class="panel-body" style="display: flex; flex-direction: column; gap: 12px;">
             <div class="hud-stat-box">
-              <div class="hud-stat-title">Target Asset</div>
+              <div class="hud-stat-title">Target Spacecraft</div>
               <div class="hud-stat-value" id="injector-target-sat">--</div>
             </div>
 
+            <!-- Risk analysis UI display -->
+            <div class="hud-stat-box" style="border-color: rgba(0, 242, 254, 0.15); background: rgba(0, 242, 254, 0.02);">
+              <div class="hud-stat-title">Telemetry Risk Profile</div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 4px;">
+                <span class="hud-stat-value" id="predictive-risk-percentage" style="font-family: var(--font-mono); color: var(--neon-cyan); font-size: 1.25rem;">0%</span>
+                <span id="predictive-risk-status" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--neon-green);">Nominal</span>
+              </div>
+              <!-- Mini progress bar for Risk Score -->
+              <div class="param-bar-container" style="margin-top: 6px; height: 4px; background: rgba(255,255,255,0.05);"><div id="predictive-risk-bar" class="param-bar-fill" style="width: 0%; background: var(--neon-cyan);"></div></div>
+            </div>
+
             <div class="injector-form">
-              <label style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Select Anomaly Vector</label>
+              <label style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Advisory Vector Preview</label>
               <select class="injector-select" id="anomaly-vector-select">
                 <option value="">-- No anomaly selected --</option>
               </select>
-              <button class="control-btn" id="inject-anomaly-btn" style="justify-content: center; padding: 10px; width: 100%; border-color: var(--neon-red); background: rgba(255, 56, 56, 0.05); color: var(--neon-red);" disabled>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path>
-                </svg>
-                Inject Telemetry Fault
+              <button class="control-btn" id="inject-anomaly-btn" style="justify-content: center; padding: 10px; width: 100%; border-color: var(--neon-cyan); background: rgba(0, 242, 254, 0.05); color: var(--neon-cyan); cursor: default;" disabled>
+                <div class="agent-spinner" style="margin-left: 0; margin-right: 6px; border-color: rgba(0, 242, 254, 0.2); border-top-color: var(--neon-cyan);"></div>
+                Autonomous Predictor: ACTIVE
               </button>
             </div>
 
             <div class="hud-stat-box" style="border-color: rgba(255, 255, 255, 0.03); flex-grow: 1;">
-              <div class="hud-stat-title">Mitigation Vector</div>
+              <div class="hud-stat-title">Imminent Mitigation Plan</div>
               <div id="mitigation-vector-desc" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3;">
-                Select a satellite and anomaly vector to display AI system mitigation scripts.
+                Select an anomaly vector above to view AI system mitigation scripts.
               </div>
             </div>
           </div>
@@ -1156,6 +1181,7 @@
             <button class="terminal-filter" onclick="filterLogs('ORCHESTRATOR')">Orchestrator</button>
             <button class="terminal-filter" onclick="filterLogs('TELEMETRY')">Watcher</button>
             <button class="terminal-filter" onclick="filterLogs('ANOMALY')">Classifier</button>
+            <button class="terminal-filter" onclick="filterLogs('PREDICTOR')">Predictor</button>
             <button class="terminal-filter" onclick="filterLogs('REPORT')">Reporter</button>
             <button class="terminal-filter" style="margin-left: 8px; color: var(--neon-red);" onclick="clearLogs()">Clear</button>
           </div>
@@ -1375,6 +1401,28 @@
       }
     };
 
+    // Predictive Anomaly Risk Score Calculator
+    function calculateRiskScore(p) {
+      const range = p.max - p.min;
+      const distToLimit = Math.min(Math.abs(p.val - p.min), Math.abs(p.val - p.max));
+      let proximity = 1.0 - (distToLimit / (range / 2));
+      proximity = Math.max(0, Math.min(1, proximity));
+
+      let trend = 0;
+      if (p.history && p.history.length > 1) {
+        const lastVal = p.history[p.history.length - 2];
+        const midPoint = (p.max + p.min) / 2;
+        const isUpperCloser = p.val > midPoint;
+        const delta = p.val - lastVal;
+        trend = isUpperCloser ? delta : -delta;
+      }
+      
+      const normTrend = trend / (range * 0.015);
+      let riskScore = proximity * 65 + (normTrend > 0 ? 35 : 0);
+      riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
+      return riskScore;
+    }
+
     // SYSTEM DATA MODELS
     class Satellite {
       constructor(cfg) {
@@ -1387,7 +1435,7 @@
         // Deep copy parameters
         this.parameters = {};
         for (const [key, param] of Object.entries(cfg.parameters)) {
-          this.parameters[key] = { ...param, history: Array(30).fill(param.val) };
+          this.parameters[key] = { ...param, history: Array(30).fill(param.val), riskScore: 0 };
         }
         
         this.anomalies = cfg.anomalies;
@@ -1395,9 +1443,22 @@
         this.activeAnomaly = null;
         this.resolving = false;
         this.restoreTargets = {};
+        this.driftBiasParam = null;
+        this.driftBiasDirection = 1;
       }
 
       update() {
+        // Manage active drift bias parameters for healthy satellites
+        if (this.status === 'healthy' && !this.activeAnomaly && !this.resolving) {
+          if (!this.driftBiasParam || Math.random() < 0.04) {
+            const pKeys = Object.keys(this.parameters);
+            this.driftBiasParam = pKeys[Math.floor(Math.random() * pKeys.length)];
+            this.driftBiasDirection = Math.random() > 0.5 ? 1 : -1;
+          }
+        } else {
+          this.driftBiasParam = null;
+        }
+
         for (const [key, p] of Object.entries(this.parameters)) {
           if (this.activeAnomaly && this.activeAnomaly.param === key) {
             // Push values towards anomaly target
@@ -1416,19 +1477,25 @@
               }
             }
           } else {
-            // Normal fluctuation
-            const scale = (p.max - p.min) * 0.02;
-            const drift = (Math.random() - 0.5) * scale;
+            // Normal fluctuation with bias to simulate degradation/drift
+            const range = p.max - p.min;
+            let drift = (Math.random() - 0.5) * (range * 0.015);
+            if (key === this.driftBiasParam) {
+              drift += this.driftBiasDirection * (range * 0.012);
+            }
             p.val += drift;
             
             // Boundary constraints
-            if (p.val < p.min - (p.max - p.min) * 0.1) p.val = p.min;
-            if (p.val > p.max + (p.max - p.min) * 0.1) p.val = p.max;
+            if (p.val < p.min - range * 0.1) p.val = p.min - range * 0.1;
+            if (p.val > p.max + range * 0.1) p.val = p.max + range * 0.1;
           }
 
           // Maintain history queue
           p.history.push(p.val);
           if (p.history.length > 30) p.history.shift();
+
+          // Calculate risk score
+          p.riskScore = calculateRiskScore(p);
         }
       }
 
@@ -1683,6 +1750,60 @@
 
     const missionReportWriter = new MissionReportWriterAgent();
 
+    // AGENT 5 - FaultPredictorAgent
+    class FaultPredictorAgent {
+      constructor() {
+        this.status = 'idle';
+      }
+
+      async predict() {
+        this.status = 'running';
+        updateAgentUI('predictor', 'running', 'ANALYZING DRIFT...');
+        
+        let highestRiskSat = null;
+        let highestRiskParam = null;
+        let maxRisk = 0;
+
+        for (const sat of Object.values(Satellites)) {
+          for (const [key, p] of Object.entries(sat.parameters)) {
+            if (p.riskScore > maxRisk) {
+              maxRisk = p.riskScore;
+              highestRiskSat = sat;
+              highestRiskParam = key;
+            }
+          }
+        }
+
+        document.getElementById('predictor-status').textContent = `Max Risk: ${maxRisk}%`;
+
+        // If risk is critical and satellite is healthy, predict & autonomously inject!
+        if (maxRisk >= 85 && highestRiskSat && highestRiskSat.status === 'healthy' && !highestRiskSat.activeAnomaly && !highestRiskSat.resolving) {
+          this.status = 'working';
+          updateAgentUI('predictor', 'working', 'FAULT PREDICTED!');
+          addLog('PREDICTOR', `CRITICAL RISK! Imminent fault predicted on ${highestRiskSat.name} (${highestRiskSat.parameters[highestRiskParam].name}) at ${maxRisk}% risk.`);
+
+          // Draw scan connection visual lines
+          drawFlowLine('agent-card-predictor', `sat-card-${highestRiskSat.id}`, 'var(--neon-red)', true);
+
+          await new Promise(r => setTimeout(r, 800)); // prediction/injection latency
+
+          // Find anomaly id
+          const anomaly = highestRiskSat.anomalies.find(a => a.param === highestRiskParam);
+          if (anomaly) {
+            highestRiskSat.injectAnomaly(anomaly.id);
+            addLog('SYSTEM', `Fault injected autonomously by Predictor on ${highestRiskSat.name} register. Anomaly: "${highestRiskSat.activeAnomaly.name}"`);
+            updateTelemetryDOM();
+          }
+        }
+
+        await new Promise(r => setTimeout(r, 500));
+        this.status = 'idle';
+        updateAgentUI('predictor', 'idle', 'SWEEPING TRENDS');
+      }
+    }
+
+    const faultPredictor = new FaultPredictorAgent();
+
     // AGENT 4 - OrchestratorAgent (Master Loop Coordinator)
     class OrchestratorAgent {
       constructor() {
@@ -1707,6 +1828,11 @@
           this.executeWatcher();
         }
 
+        // FaultPredictor schedule (every 2 seconds)
+        if (this.clockTicks % 2 === 0) {
+          this.executePredictor();
+        }
+
         // MissionReportWriter schedule
         if (this.reporterTimer <= 0) {
           this.reporterTimer = 60;
@@ -1720,6 +1846,17 @@
         drawFlowLine('agent-card-orchestrator', 'agent-card-watcher', 'var(--isro-orange)', false);
         
         await telemetryWatcher.scan();
+        
+        this.status = 'idle';
+        updateAgentUI('orchestrator', 'idle', 'STANDBY');
+      }
+
+      async executePredictor() {
+        this.status = 'running';
+        updateAgentUI('orchestrator', 'running', 'SCHEDULING PREDICTOR...');
+        drawFlowLine('agent-card-orchestrator', 'agent-card-predictor', 'var(--isro-orange)', false);
+        
+        await faultPredictor.predict();
         
         this.status = 'idle';
         updateAgentUI('orchestrator', 'idle', 'STANDBY');
@@ -1821,6 +1958,40 @@
         globalDot.className = 'status-dot anomaly';
         globalText.textContent = 'FAULT DETECTED';
         globalText.style.color = 'var(--neon-red)';
+      }
+
+      // Update Predictive Fault Injector HUD
+      const selSat = Satellites[selectedSatelliteId];
+      if (selSat) {
+        let maxRisk = 0;
+        for (const p of Object.values(selSat.parameters)) {
+          if (p.riskScore > maxRisk) {
+            maxRisk = p.riskScore;
+          }
+        }
+        
+        const riskPctEl = document.getElementById('predictive-risk-percentage');
+        const riskStatusEl = document.getElementById('predictive-risk-status');
+        const riskBarEl = document.getElementById('predictive-risk-bar');
+        
+        if (riskPctEl && riskStatusEl && riskBarEl) {
+          riskPctEl.textContent = `${maxRisk}%`;
+          riskBarEl.style.width = `${maxRisk}%`;
+          
+          if (maxRisk >= 85) {
+            riskStatusEl.textContent = 'CRITICAL RISK';
+            riskStatusEl.style.color = 'var(--neon-red)';
+            riskBarEl.style.backgroundColor = 'var(--neon-red)';
+          } else if (maxRisk >= 50) {
+            riskStatusEl.textContent = 'ELEVATED DRIFT';
+            riskStatusEl.style.color = 'var(--isro-orange)';
+            riskBarEl.style.backgroundColor = 'var(--isro-orange)';
+          } else {
+            riskStatusEl.textContent = 'NOMINAL';
+            riskStatusEl.style.color = 'var(--neon-green)';
+            riskBarEl.style.backgroundColor = 'var(--neon-cyan)';
+          }
+        }
       }
     }
 
@@ -2272,13 +2443,13 @@
 
       if (!anomalyId) {
         btn.disabled = true;
-        desc.textContent = "Select a satellite and anomaly vector to display AI system mitigation scripts.";
+        desc.textContent = "Select an anomaly vector above to view AI system mitigation scripts.";
         return;
       }
 
       const anomaly = sat.anomalies.find(a => a.id === anomalyId);
       if (anomaly) {
-        btn.disabled = false;
+        btn.disabled = true; // Keep disabled since Fault Injection is fully autonomous
         desc.innerHTML = `
           <strong>Root Cause:</strong> ${anomaly.cause}<br>
           <strong>Mitigation Command:</strong> <span style="color: var(--neon-purple);">${anomaly.mitigation}</span>
@@ -2286,24 +2457,9 @@
       }
     });
 
-    // Inject fault trigger
+    // Inject fault trigger is deactivated for fully autonomous mode
     document.getElementById('inject-anomaly-btn').addEventListener('click', () => {
-      const select = document.getElementById('anomaly-vector-select');
-      const anomalyId = select.value;
-      const sat = Satellites[selectedSatelliteId];
-
-      if (sat && anomalyId) {
-        sat.injectAnomaly(anomalyId);
-        addLog('SYSTEM', `Fault injected on ${sat.name} register. Anomaly: "${sat.activeAnomaly.name}"`);
-        
-        // Visual flow from Injector to Satellite card
-        drawFlowLine('inject-anomaly-btn', `sat-card-${sat.id}`, 'var(--neon-red)', true);
-        
-        // Reset injector selector
-        select.value = '';
-        document.getElementById('inject-anomaly-btn').disabled = true;
-        document.getElementById('mitigation-vector-desc').textContent = "Fault successfully dispatched. TelemetryWatcher scanning pending...";
-      }
+      // No-op: Autonomous predictor handles fault injection
     });
 
     // MASTER RESET BUTTON
