@@ -30,13 +30,13 @@ class AudioSynth {
       const gain = this.ctx.createGain();
       osc.type = type;
       osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-      
+
       gain.gain.setValueAtTime(volume, this.ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-      
+
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-      
+
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
     } catch (e) {
@@ -181,7 +181,7 @@ function initFallbackState() {
 // Local simulation updates (used if server is offline)
 function runLocalSimulationTick() {
   if (isBackendSynced) return; // Skip if server handles it
-  
+
   for (const sat of Object.values(Satellites)) {
     for (const [key, p] of Object.entries(sat.parameters)) {
       if (sat.activeAnomaly && sat.activeAnomaly.param === key) {
@@ -264,10 +264,10 @@ function addLog(source, msg) {
   const now = new Date();
   const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
   const log = { id: Date.now() + Math.random(), time: timeStr, source, msg };
-  
+
   LOGS.push(log);
   if (LOGS.length > MAX_LOGS) LOGS.shift();
-  
+
   renderLogs();
   if (audio.enabled && source !== 'SYSTEM') {
     audio.playTick();
@@ -278,9 +278,9 @@ function renderLogs() {
   const screen = document.getElementById('terminal-screen-logs');
   if (!screen) return;
   screen.innerHTML = '';
-  
+
   const filtered = LOGS.filter(l => logFilter === 'ALL' || l.source === logFilter);
-  
+
   filtered.forEach(log => {
     const line = document.createElement('div');
     line.className = 'log-line';
@@ -320,7 +320,7 @@ class TelemetryWatcherAgent {
   async scan() {
     updateAgentUI('watcher', 'running', 'SCANNING SENSORS...');
     addLog('TELEMETRY', 'Starting telemetry telemetry frame scan across 5 active satellites...');
-    
+
     let anomaliesFound = 0;
 
     for (const sat of Object.values(Satellites)) {
@@ -331,9 +331,9 @@ class TelemetryWatcherAgent {
         const val = p.val;
         if (val < p.min || val > p.max) {
           anomaliesFound++;
-          
+
           addLog('TELEMETRY', `ALERT! Out-of-range sensor feedback on ${sat.name}: ${p.name} = ${val.toFixed(2)} ${p.unit} (Nominal: ${p.min}-${p.max})`);
-          
+
           // Emit anomaly detected event
           eventBus.emit('ANOMALY_DETECTED', {
             satelliteId: sat.id,
@@ -353,7 +353,7 @@ class TelemetryWatcherAgent {
     }
 
     document.getElementById('watcher-count').textContent = `Last Checked: ${anomaliesFound} alerts`;
-    
+
     await new Promise(r => setTimeout(r, 600)); // wait scan visual
     updateAgentUI('watcher', 'idle', 'STANDBY');
   }
@@ -440,7 +440,7 @@ class AnomalyClassifierAgent {
 
     this.resolvedCount++;
     document.getElementById('classifier-resolved').textContent = `Resolved: ${this.resolvedCount}`;
-    
+
     addLog('ANOMALY', `Mitigation script dispatched to ${sat.name}. Stabilization command acknowledged.`);
     audio.stopAlarmLoop();
     audio.playSuccess();
@@ -568,12 +568,12 @@ class OrchestratorAgent {
   async runWatcher() {
     updateAgentUI('orchestrator', 'running', 'SCHEDULING WATCHER...');
     document.getElementById('orchestrator-action').innerHTML = `Orchestrating <span style="color: var(--neon-cyan);">→ TelemetryWatcher</span><span class="agent-spinner"></span>`;
-    
+
     drawFlowLine('agent-card-orchestrator', 'agent-card-watcher', 'var(--isro-orange)', false);
-    
+
     this.recordDecision("Scheduled Telemetry Scan");
     await telemetryWatcher.scan();
-    
+
     updateAgentUI('orchestrator', 'idle', 'STANDBY');
     document.getElementById('orchestrator-action').textContent = 'STANDBY';
   }
@@ -581,12 +581,12 @@ class OrchestratorAgent {
   async runReporter() {
     updateAgentUI('orchestrator', 'running', 'SCHEDULING REPORTER...');
     document.getElementById('orchestrator-action').innerHTML = `Orchestrating <span style="color: var(--neon-green);">→ MissionReportWriter</span><span class="agent-spinner"></span>`;
-    
+
     drawFlowLine('agent-card-orchestrator', 'agent-card-reporter', 'var(--isro-orange)', false);
-    
+
     this.recordDecision("Scheduled Report Compiler");
     await missionReportWriter.compileReport();
-    
+
     updateAgentUI('orchestrator', 'idle', 'STANDBY');
     document.getElementById('orchestrator-action').textContent = 'STANDBY';
   }
@@ -654,7 +654,7 @@ function updateTelemetryDOM() {
     const statusBadge = card.querySelector('.sat-status-badge');
     statusBadge.textContent = sat.status.toUpperCase();
     statusBadge.className = `sat-status-badge status-${sat.status}`;
-    
+
     if (sat.status === 'critical' || sat.status === 'warning') {
       card.classList.add('has-anomaly');
       isSystemNominal = false;
@@ -668,7 +668,7 @@ function updateTelemetryDOM() {
       if (!row) continue;
 
       row.querySelector('.param-value').textContent = `${p.val.toFixed(1)} ${p.unit}`;
-      
+
       let percent = ((p.val - p.min) / (p.max - p.min)) * 100;
       percent = Math.max(5, Math.min(95, percent));
 
@@ -713,7 +713,7 @@ function resizeSpaceCanvas() {
 
 function drawSpaceScene() {
   if (!spaceCanvas || !spaceCanvas.width) return;
-  
+
   spaceCtx.clearRect(0, 0, spaceCanvas.width, spaceCanvas.height);
   const cx = spaceCanvas.width / 2;
   const cy = spaceCanvas.height / 2;
@@ -734,7 +734,7 @@ function drawSpaceScene() {
   earthGlow.addColorStop(0.5, '#4364f7');
   earthGlow.addColorStop(0.9, '#6fb1fc');
   earthGlow.addColorStop(1, 'transparent');
-  
+
   spaceCtx.fillStyle = earthGlow;
   spaceCtx.beginPath();
   spaceCtx.arc(cx, cy, earthRadius + 15, 0, Math.PI * 2);
@@ -747,7 +747,7 @@ function drawSpaceScene() {
   spaceCtx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
   spaceCtx.fill();
   spaceCtx.stroke();
-  
+
   // Orbit configurations
   const orbits = {
     risat2br1: { r: 52, speed: 1.8, color: 'var(--neon-green)' },
@@ -782,7 +782,7 @@ function drawSpaceScene() {
   spaceCtx.moveTo(l1x - 5, l1y); spaceCtx.lineTo(l1x + 5, l1y);
   spaceCtx.moveTo(l1x, l1y - 5); spaceCtx.lineTo(l1x, l1y + 5);
   spaceCtx.stroke();
-  
+
   // Halo orbit
   drawOrbitEllipse(spaceCtx, l1x, l1y, orbits.adityal1.rx, orbits.adityal1.ry, false);
 
@@ -803,13 +803,13 @@ function drawSpaceScene() {
       const moonAngle = orbitAngle * o.speed;
       const mx = cx + o.r * Math.cos(moonAngle);
       const my = cy + o.r * Math.sin(moonAngle);
-      
+
       // Draw Moon
       spaceCtx.fillStyle = '#475569';
       spaceCtx.beginPath();
       spaceCtx.arc(mx, my, 8, 0, Math.PI * 2);
       spaceCtx.fill();
-      
+
       // Chandrayaan-3 orbit line around Moon
       spaceCtx.strokeStyle = 'rgba(192, 132, 252, 0.2)';
       spaceCtx.lineWidth = 0.8;
@@ -834,7 +834,7 @@ function drawSpaceScene() {
 
     const size = (sat.id === selectedSatelliteId) ? 7 : 5;
     const color = (sat.status === 'critical') ? 'var(--neon-red)' : sat.color;
-    
+
     // Draw Sat marker
     spaceCtx.shadowColor = color;
     spaceCtx.shadowBlur = (sat.status === 'critical') ? 12 : 6;
@@ -842,7 +842,7 @@ function drawSpaceScene() {
     spaceCtx.beginPath();
     spaceCtx.arc(sx, sy, size, 0, Math.PI * 2);
     spaceCtx.fill();
-    
+
     spaceCtx.shadowColor = 'transparent';
     spaceCtx.shadowBlur = 0;
 
@@ -877,7 +877,7 @@ const chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
 
 function drawChart() {
   if (!chartCanvas || !chartCtx || !chartCanvas.width) return;
-  
+
   chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
 
   const sat = Satellites[selectedSatelliteId];
@@ -892,7 +892,7 @@ function drawChart() {
 
   chartCtx.strokeStyle = 'rgba(255,255,255,0.03)';
   chartCtx.lineWidth = 1;
-  
+
   // Vert grids
   for (let x = pad; x < w - pad; x += (w - 2 * pad) / 6) {
     chartCtx.beginPath();
@@ -923,17 +923,17 @@ function drawChart() {
   chartCtx.strokeStyle = 'rgba(255, 56, 56, 0.4)';
   chartCtx.lineWidth = 1;
   chartCtx.setLineDash([4, 4]);
-  
+
   chartCtx.beginPath();
   chartCtx.moveTo(pad, yMaxLine);
   chartCtx.lineTo(w - pad, yMaxLine);
   chartCtx.stroke();
-  
+
   chartCtx.beginPath();
   chartCtx.moveTo(pad, yMinLine);
   chartCtx.lineTo(w - pad, yMinLine);
   chartCtx.stroke();
-  
+
   chartCtx.setLineDash([]);
 
   chartCtx.fillStyle = 'rgba(255, 56, 56, 0.7)';
@@ -945,7 +945,7 @@ function drawChart() {
   if (!history || history.length === 0) return;
 
   const step = (w - 2 * pad) / 29;
-  
+
   const lineGlow = chartCtx.createLinearGradient(0, 0, 0, h);
   lineGlow.addColorStop(0, (sat.status === 'critical') ? 'rgba(255, 56, 56, 0.15)' : 'rgba(0, 242, 254, 0.15)');
   lineGlow.addColorStop(1, 'transparent');
@@ -966,7 +966,7 @@ function drawChart() {
   chartCtx.strokeStyle = (sat.status === 'critical') ? 'var(--neon-red)' : 'var(--neon-cyan)';
   chartCtx.lineWidth = 2;
   chartCtx.beginPath();
-  
+
   for (let i = 0; i < history.length; i++) {
     const x = pad + i * step;
     const y = yValToPixel(history[i]);
@@ -978,7 +978,7 @@ function drawChart() {
   const lastIdx = history.length - 1;
   const lx = pad + lastIdx * step;
   const ly = yValToPixel(history[lastIdx]);
-  
+
   chartCtx.fillStyle = (sat.status === 'critical') ? 'var(--neon-red)' : 'var(--neon-cyan)';
   chartCtx.beginPath();
   chartCtx.arc(lx, ly, 4, 0, Math.PI * 2);
@@ -1010,7 +1010,7 @@ function drawFlowLine(fromId, toId, color, pulse = false) {
   path.setAttribute('stroke-width', '2.5');
   path.setAttribute('fill', 'none');
   path.setAttribute('opacity', '0.85');
-  
+
   if (pulse) {
     path.setAttribute('class', 'glowing-flow-path');
   }
@@ -1032,13 +1032,13 @@ function selectSatellite(satId) {
 
   document.getElementById('selected-sat-title').textContent = sat.name;
   document.getElementById('injector-target-sat').textContent = `${sat.name} (${sat.type})`;
-  
+
   selectedParameterKey = Object.keys(sat.parameters)[0];
   document.getElementById('selected-param-title').textContent = `Parameter: ${sat.parameters[selectedParameterKey].name}`;
 
   const btnContainer = document.getElementById('hud-param-buttons');
   btnContainer.innerHTML = '';
-  
+
   for (const [key, p] of Object.entries(sat.parameters)) {
     const btn = document.createElement('button');
     btn.className = `control-btn ${key === selectedParameterKey ? 'active' : ''}`;
@@ -1055,7 +1055,7 @@ function selectSatellite(satId) {
   // Populate Anomaly Injector dropdown matching backend mappings
   const select = document.getElementById('anomaly-vector-select');
   select.innerHTML = '<option value="">-- No anomaly selected --</option>';
-  
+
   const config = FALLBACK_CONFIGS[satId];
   for (const [anomalyId, anomaly] of Object.entries(config.anomalies)) {
     const opt = document.createElement('option');
@@ -1066,7 +1066,7 @@ function selectSatellite(satId) {
 
   document.getElementById('inject-anomaly-btn').disabled = true;
   document.getElementById('mitigation-vector-desc').textContent = "Select an anomaly vector above to view AI system mitigation scripts.";
-  
+
   updateTelemetryDOM();
 }
 
@@ -1076,7 +1076,7 @@ function selectSatellite(satId) {
 window.onload = () => {
   initFallbackState();
   selectSatellite('insat3dr');
-  
+
   addLog('SYSTEM', 'Sārathi AI Command Interface online.');
   addLog('SYSTEM', 'Listening for telemetry carrier downlink sync streams...');
 
@@ -1159,8 +1159,8 @@ window.onload = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ satelliteId, anomalyId })
       })
-      .then(r => r.json())
-      .catch(e => console.error("Injection failed", e));
+        .then(r => r.json())
+        .catch(e => console.error("Injection failed", e));
     } else {
       // Injects locally in fallback mode
       const limitCfg = FALLBACK_CONFIGS[satelliteId].anomalies[anomalyId];
