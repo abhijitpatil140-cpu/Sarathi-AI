@@ -155,45 +155,21 @@ Sārathi AI implements a standard **JSON-RPC stdio-based MCP Server** interface 
 
 #### `get_telemetry`
 Returns the real-time telemetry matrix, health status, and active anomalies for all 5 satellites.
-```json
-{ "arguments": {} }
-```
+
 
 #### `inject_fault`
 Safely injects a simulated telemetry fault on a specific spacecraft.
-```json
-{
-  "arguments": {
-    "satelliteId": "chandrayaan3",
-    "anomalyId": "low_signal"
-  }
-}
-```
+
 
 #### `mitigate_anomaly`
 Deploys the whitelisted mitigation script to restore parameters to nominal.
-```json
-{
-  "arguments": {
-    "satelliteId": "chandrayaan3"
-  }
-}
-```
+
 
 ### Connecting an MCP Client (e.g. Claude Desktop)
 
 Add the following to your Claude Desktop config file (`%APPDATA%\Claude\claude_desktop_config.json`):
 
-```json
-{
-  "mcpServers": {
-    "sarathi-ai": {
-      "command": "node",
-      "args": ["c:/Capstone/server.js", "--mcp"]
-    }
-  }
-}
-```
+
 
 > ⚠️ **Windows Note**: Use absolute paths with forward slashes for compatibility.
 
@@ -205,19 +181,18 @@ Sārathi AI includes a **command-line operator interface** for direct human cont
 
 ```bash
 # View help and satellite configurations
-npm run cli help
+
 
 # View real-time fleet telemetry matrix
-npm run cli status
+
 
 # Fetch the recent live agent operations log
-npm run cli logs
+
 
 # Inject a transponder signal fault on Chandrayaan-3
-npm run cli inject chandrayaan3 low_signal
 
 # Resolve all active anomalies on Cartosat-3
-npm run cli mitigate cartosat3
+
 ```
 
 ---
@@ -233,14 +208,11 @@ npm run cli mitigate cartosat3
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/abhijitpatil140/sarathi-ai.git
-cd sarathi-ai
 
 # 2. Install dependencies
-npm install
 
 # 3. Start the Sārathi AI Server
-npm start
+
 
 # 4. Open the dashboard in your browser
 #    → http://localhost:3000
@@ -268,39 +240,28 @@ sarathi-ai/
 Verify stdio-based JSON-RPC protocol compliance directly from your terminal:
 
 ### Step 1 — Start in MCP Mode
-```bash
-node server.js --mcp
-```
+
 *(The server now listens for JSON-RPC requests on stdin)*
 
 ### Step 2 — Protocol Handshake
-```json
-{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0"}}}
-```
+
 *Expected: JSON payload listing server capabilities (`sarathi-ai-mcp`)*
 
 ### Step 3 — List Available Tools
-```json
-{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
-```
+
 *Expected: JSON schemas for `get_telemetry`, `inject_fault`, `mitigate_anomaly`*
 
 ### Step 4 — Fetch Telemetry Matrix
-```json
-{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_telemetry","arguments":{}}}
-```
+
 *Expected: Full telemetry object with health status and all parameters*
 
 ### Step 5 — Inject Anomaly
-```json
-{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"inject_fault","arguments":{"satelliteId":"chandrayaan3","anomalyId":"low_signal"}}}
-```
+
 *Expected: Confirmation of anomaly injection*
 
 ### Step 6 — Deploy Mitigation
-```json
-{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"mitigate_anomaly","arguments":{"satelliteId":"chandrayaan3"}}}
-```
+
+
 *Expected: Confirmation that stabilization commands were received*
 
 ---
