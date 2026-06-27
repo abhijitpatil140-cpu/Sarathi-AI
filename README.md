@@ -134,8 +134,10 @@ The live command dashboard is accessible at **`http://localhost:3000`** and feat
 - **Mission report panel** with auto-refreshing summaries
 
 The dashboard uses **WebSockets** for zero-latency live updates and a **glassmorphic dark design** for a premium operator-grade experience.
+---
 
 https://github.com/user-attachments/assets/33e6483c-c707-46ac-a700-886eee3b0461
+
 ---
 
 <img width="1891" height="905" alt="Image" src="https://github.com/user-attachments/assets/bf7690e3-f71a-4866-a53b-e98d043aed65" />
